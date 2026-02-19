@@ -1,0 +1,12 @@
+{
+  "OllamaModel": {
+    "baseUrl": "http://ollama.example.com:11434",
+    "model": "llama3.2:1b",
+    "temperature": 0.7,
+    "maxTokens": 2048,
+    "keepAlive": 600
+  },
+  "LocalModel": {
+    "maxTokens": 2048
+  }
+}

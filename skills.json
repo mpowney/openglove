@@ -1,0 +1,10 @@
+{ "SearxngWebSearchSkill": {
+    "baseUrl": "https://searxng.example.com",
+    "timeout": 8000,
+    "resultCount": 3,
+    "params": { "engines": "duckduckgo,google,bing,brave" }
+  },
+  "TimeSkill": {
+    "timezoneHint": "local"
+  }
+}
