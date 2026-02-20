@@ -1,4 +1,7 @@
 import { BaseModel } from './BaseModel';
+import { Logger } from '../utils/Logger';
+
+const logger = new Logger('OllamaModel');
 
 type OllamaConfig = {
   baseUrl?: string; // base URL of Ollama instance, e.g. http://localhost:11434
@@ -49,8 +52,8 @@ export class OllamaModel extends BaseModel {
         const text = await resp.text();
         try { return JSON.parse(text); } catch { return text; }
       }
-    } catch (_) {
-      // fall through to node http/https
+    } catch (e: unknown) {
+      logger.verbose('fetch POST failed, falling back to node http(s)', { error: e });
     }
 
     // Node fallback
@@ -112,8 +115,8 @@ export class OllamaModel extends BaseModel {
         }
         return;
       }
-    } catch (_) {
-      // fall back
+    } catch (e: unknown) {
+      logger.verbose('fetch streaming failed, falling back to node http(s)', { error: e });
     }
 
     // Node http fallback: make request and stream 'data' events
@@ -147,8 +150,8 @@ export class OllamaModel extends BaseModel {
       // use global URL if available
       // @ts-ignore
       if (typeof URL !== 'undefined') return new URL(path, this.baseUrl).toString();
-    } catch (_) {
-      // ignore
+    } catch (e: unknown) {
+    //   logger.verbose(`global URL not available; falling back to runtime import`, { error: e });
     }
     const { URL } = await import('url');
     return new URL(path, this.baseUrl).toString();

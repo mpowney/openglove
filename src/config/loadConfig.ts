@@ -2,6 +2,9 @@ export type ConfigMap = Record<string, any> | null;
 
 const cache: Record<string, ConfigMap> = {};
 
+import { Logger } from '../utils/Logger';
+const logger = new Logger('loadConfig');
+
 export function loadConfig(path: string): ConfigMap {
   if (!path) return null;
   if (Object.prototype.hasOwnProperty.call(cache, path)) return cache[path];
@@ -16,7 +19,8 @@ export function loadConfig(path: string): ConfigMap {
     const parsed = JSON.parse(raw);
     cache[path] = parsed;
     return parsed;
-  } catch (e) {
+  } catch (e: unknown) {
+    logger.warn('Failed to load config', { path, error: e });
     cache[path] = null;
     return null;
   }

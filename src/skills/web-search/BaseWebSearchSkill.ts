@@ -1,4 +1,7 @@
 import { BaseSkill, SkillContext } from '../BaseSkill';
+import { Logger } from '../../utils/Logger';
+
+const logger = new Logger('BaseWebSearchSkill');
 
 export type SearchResultItem = {
   title?: string;
@@ -46,8 +49,8 @@ export abstract class BaseWebSearchSkill extends BaseSkill {
         const text = await resp.text();
         try { return JSON.parse(text); } catch { return text; }
       }
-    } catch (_) {
-      // fall back
+    } catch (err: any) {
+      logger.error('fetch failed, falling back to node http(s)', { url: urlStr, error: err.message });
     }
 
     const { URL } = await import('url');
