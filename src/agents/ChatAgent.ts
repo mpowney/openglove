@@ -125,23 +125,25 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
           this.history[this.history.length - 1].ts = Date.now()
         }
 
+        const channelStreams: any = {};
         for (const ch of this.channels) {
           try {
             if (ch.supportsStreaming() && chunk.type === 'delta') {
               const stream = (async function* () { yield String(chunk.content); })();
-              const resp: ChannelResponse = { id: undefined, stream };
+              const resp: ChannelResponse = { id: ch.id, stream };
               ch.sendResponse(resp).catch(() => {});
             }
             if (chunk.type === 'end') {
               const messageContent = this.history[this.history.length - 1].content;
               const stream = (async function* () { yield String(messageContent); })();
-              const resp: ChannelResponse = { id: undefined, stream };
+              const resp: ChannelResponse = { id: ch.id, meta: { final: true, complete: true } };
+              ch.sendResponse(resp).catch(() => {});
             }
           } catch (e) {
             // ignore
           }
         }
-        yield this.history[this.history.length - 1];
+        // yield this.history[this.history.length - 1];
       }
       // After streaming completes, also send final concatenated message to non-streaming channels
       const final = this.history.filter(h => h.role === 'assistant').map(h => h.content).join('');
@@ -166,9 +168,9 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
         if (ch.supportsStreaming()) {
           // wrap single message as a one-item stream
           const stream = (async function* () { yield String(content); })();
-          ch.sendResponse({ stream }).catch(() => {});
+          // ch.sendResponse({ stream }).catch(() => {});
         } else {
-          ch.sendResponse({ content: String(content) }).catch(() => {});
+          // ch.sendResponse({ content: String(content) }).catch(() => {});
         }
       } catch {
         // ignore

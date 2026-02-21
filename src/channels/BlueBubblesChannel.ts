@@ -33,7 +33,15 @@ export class BlueBubblesChannel extends BaseChannel {
       threadId: this.opts.threadId,
       message: resp.content ?? ''
     };
-    fetchWithTimeout(url, "POST", { 'content-type': 'application/json', ...(this.opts.apiKey ? { Authorization: `Bearer ${this.opts.apiKey}` } : {}) }, payload, 5000)
+    try {
+      fetchWithTimeout(url, "POST", { 'content-type': 'application/json', ...(this.opts.apiKey ? { Authorization: `Bearer ${this.opts.apiKey}` } : {}) }, payload, 5000).catch(e => {
+        logger.error('Failed to send message to BlueBubbles', e);
+      });
+    }
+    catch (e: unknown) {
+      logger.error('Failed to send message to BlueBubbles', e);
+    }
+    
   }
 
   async sendEvent(ev: ChannelEvent): Promise<void> {

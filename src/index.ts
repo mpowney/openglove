@@ -57,23 +57,23 @@ async function main() {
 
   // Demo OllamaModel usage (non-streaming + streaming). Configure via OLLAMA_URL or models.json (OllamaModel entry).
   logger.log('Demo');
-  const ollamaUrl = process.env.OLLAMA_URL;
-  const ollamaModel = new OllamaModel(ollamaUrl ? { baseUrl: ollamaUrl } : {}, { name: 'OllamaModel' });
+  // const ollamaUrl = process.env.OLLAMA_URL;
+  // const ollamaModel = new OllamaModel(ollamaUrl ? { baseUrl: ollamaUrl } : {}, { name: 'OllamaModel' });
   // const azureOpenAIModel = new AzureOpenAIModel({}, { name: 'AzureOpenAIModel' });
 
   // Create an agent backed by the Ollama model to integrate it into the agent flow
-  const agent = new ChatAgent(ollamaModel, { role: 'assistant' });
+  // const agent = new ChatAgent(ollamaModel, { role: 'assistant' });
   // register same skills on the ollamaAgent so it can use them
 //   (ollamaAgent as any).registerSkill(timeSkill);
 
-  try {
-    logger.log('OllamaModel (stream) generate via agent flow:');
-    for await (const chunk of agent.sendStream('Please write a friendly greeting in two sentences.')) {
-      logger.log('Stream chunk received', chunk);
-    }
-  } catch (err: unknown) {
-    logger.error('Stream call failed', { error: err instanceof Error ? err.message : String(err) });
-  }
+  // try {
+  //   logger.log('OllamaModel (stream) generate via agent flow:');
+  //   for await (const chunk of agent.sendStream('Please write a friendly greeting in two sentences.')) {
+  //     logger.log('Stream chunk received', chunk);
+  //   }
+  // } catch (err: unknown) {
+  //   logger.error('Stream call failed', { error: err instanceof Error ? err.message : String(err) });
+  // }
 
 //   try {
 //     logger.log('Ollama (non-stream) generate:');
@@ -116,19 +116,18 @@ async function main() {
 //   }
 
 
-//   // Example: instantiate a ChatAgent configured via agents.json (entry name: "ChatAgent")
-//   try {
-//     const cfgAgent = new ChatAgent(model, { name: 'ChatAgent', role: 'assistant' });
-//     // attach common skills used in the demo
-//     (cfgAgent as any).registerSkill(timeSkill);
-//     try {
-//       (cfgAgent as any).registerSkill((agent as any).skills.find((s: any) => s.constructor.name === 'SearxngWebSearchSkill'));
-//     } catch (_) {}
-//     logger.log('Configured ChatAgent created from agents.json (if present)');
-//     logger.log('Channels:', { channels: (cfgAgent as any).channels?.map((c: any) => c.name) });
-//   } catch (e) {
-//     logger.warn('Failed to create configured ChatAgent', { error: e });
-//   }
+  // Example: instantiate a ChatAgent configured via agents.json (entry name: "ChatAgent")
+  const ollamaUrl = process.env.OLLAMA_URL;
+  const model = new OllamaModel(ollamaUrl ? { baseUrl: ollamaUrl } : {}, { name: 'OllamaModel' });
+  // const model = new AzureOpenAIModel({}, { name: 'AzureOpenAIModel' });
+
+  try {
+    const agent = new ChatAgent(model, { name: 'ChatAgent', role: 'assistant' });
+    logger.log('Configured ChatAgent created from agents.json (if present)');
+    logger.log('Channels:', { channels: (agent as any).channels?.map((c: any) => c.name) });
+  } catch (e) {
+    logger.warn('Failed to create configured ChatAgent', { error: e });
+  }
 }
 
 main().catch(err => {
