@@ -15,7 +15,9 @@
         "type": "WebSocketChannel",
         "name": "webChat",
         "opts": {
-          "streaming": true
+          "streaming": true,
+          "port": 8080,
+          "host": "localhost"
         }
       },
       {
