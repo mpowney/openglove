@@ -1,5 +1,6 @@
 import { BaseModel } from './BaseModel';
 import { Logger } from '../utils/Logger';
+import { Chunk } from './BaseModel';
 
 const logger = new Logger('OllamaModel');
 
@@ -29,123 +30,61 @@ export class OllamaModel extends BaseModel {
     this.keepAlive = opts.keepAlive ?? (cfg as any)?.keepAlive;
   }
 
-  /**
-   * Non-streaming predict: returns the full generated text/result.
-   */
-  async predict(input: string): Promise<any> {
-    const url = await this.buildUrl('/api/generate');
-    const payload: any = {
-      model: this.modelName,
-      prompt: input
-    };
-    if (this.contextLength) payload.context_length = this.contextLength;
-    if (this.keepAlive) payload.keep_alive = this.keepAlive;
-
-    const headers: Record<string, string> = { 'content-type': 'application/json' };
-    if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
-
-    // prefer global fetch
-    try {
-      // @ts-ignore
-      if (typeof fetch === 'function') {
-        const resp = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
-        const text = await resp.text();
-        try { return JSON.parse(text); } catch { return text; }
-      }
-    } catch (e: unknown) {
-      logger.verbose('fetch POST failed, falling back to node http(s)', { error: e });
-    }
-
-    // Node fallback
-    const { URL } = await import('url');
-    const u = new URL(url);
-    const lib = u.protocol === 'https:' ? await import('https') : await import('http');
-    return new Promise((resolve, reject) => {
-      const req = lib.request(u, { method: 'POST', headers, timeout: 10000 } as any, (res: any) => {
-        let body = '';
-        res.setEncoding('utf8');
-        res.on('data', (chunk: string) => (body += chunk));
-        res.on('end', () => {
-          try { resolve(JSON.parse(body)); } catch { resolve(body); }
-        });
-      });
-      req.on('error', reject as any);
-      req.write(JSON.stringify(payload));
-      req.end();
-    });
+  async supportsStreaming(): Promise<boolean> {
+    return true;
   }
 
-  /**
-   * Streaming predict: returns an AsyncIterable yielding partial chunks as strings or parsed objects.
-   */
-  async *predictStream(input: string): AsyncIterable<string | any> {
-    const url = await this.buildUrl('/api/generate');
-    const payload: any = { model: this.modelName, prompt: input, stream: true };
-    if (this.contextLength) payload.context_length = this.contextLength;
-    if (this.keepAlive) payload.keep_alive = this.keepAlive;
-
+  buildHeaders(): Promise<Record<string, string>> {
     const headers: Record<string, string> = { 'content-type': 'application/json' };
-    if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
-
-    // Try fetch streaming
-    try {
-      // @ts-ignore
-      if (typeof fetch === 'function') {
-        const resp = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
-        if (!resp.body) return;
-        const reader = resp.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          // split on newline to yield complete lines
-          let idx: number;
-          while ((idx = buffer.indexOf('\n')) !== -1) {
-            const line = buffer.slice(0, idx).trim();
-            buffer = buffer.slice(idx + 1);
-            if (!line) continue;
-            // try JSON parse otherwise yield raw
-            try { yield JSON.parse(line).response; } catch { yield line; }
-          }
-        }
-        if (buffer.trim()) {
-          try { yield JSON.parse(buffer).response; } catch { yield buffer; }
-        }
-        return;
-      }
-    } catch (e: unknown) {
-      logger.verbose('fetch streaming failed, falling back to node http(s)', { error: e });
-    }
-
-    // Node http fallback: make request and stream 'data' events
-    const { URL } = await import('url');
-    const u = new URL(url);
-    const lib = u.protocol === 'https:' ? await import('https') : await import('http');
-    const req = lib.request(u, { method: 'POST', headers, timeout: 10000 } as any);
-    req.on('error', () => {});
-    req.write(JSON.stringify(payload));
-    req.end();
-
-    // create async iterator from response stream
-    const iterable = (async function* (reqStream: any) {
-      for await (const chunk of reqStream) {
-        const s = String(chunk);
-        // split by newline
-        const parts = s.split(/\r?\n/).filter(Boolean);
-        for (const p of parts) {
-          try { yield JSON.parse(p); } catch { yield p; }
-        }
-      }
-    })(await new Promise<any>((resolve) => {
-      req.on('response', (res: any) => resolve(res));
-    }));
-
-    for await (const v of iterable) yield v;
+    return Promise.resolve(headers);
   }
 
-  private async buildUrl(path: string): Promise<string> {
+  buildPayload(url: string, input: any): any {
+    const payload: any = { model: this.modelName, prompt: input };
+    if (this.contextLength) payload.context_length = this.contextLength;
+    if (this.keepAlive) payload.keep_alive = this.keepAlive;
+    return payload;
+  }
+
+  async handleResponse(response: string): Promise<any> {
+    logger.verbose('handleResponse', response);
+    try { 
+      return JSON.parse(response); 
+    } catch (e) { 
+      logger.warn('handleResponse: failed to parse response as JSON', { error: e, response });
+      return response; 
+    }
+  }
+
+  async handleStreamChunk(chunk: any): Promise<Chunk | any> {
+    logger.verbose('handleStreamChunk', chunk);
+    if (chunk.thinking) {
+        const response: Chunk = { 
+            type: 'start',
+            role: this.role,
+        };
+        return response;
+    }
+    else if (chunk.done) {
+        const response: Chunk = { 
+            type: 'end',
+            role: this.role
+        };
+        return response;
+    }
+    else if (chunk.response) {
+        const response: Chunk = { 
+            type: 'delta',
+            role: this.role,
+            content: chunk.response
+        };
+        return response;
+    }
+      
+  }
+
+  async buildUrl(): Promise<string> {
+    const path = '/api/generate';
     try {
       // use global URL if available
       // @ts-ignore

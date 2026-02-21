@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 export type LogLevel = 'verbose' | 'info' | 'warn' | 'error';
 
 export type LogEntry = {
@@ -74,6 +76,41 @@ export class Logger {
         if (entry.level === 'error') console.error(out, entry.meta);
         else if (entry.level === 'warn') console.warn(out, entry.meta);
         else console.log(out, entry.meta);
+    };
+    return subscriber
+  }
+
+  static FileSubscriber(filePath: string, levels: LogLevel | LogLevel[] = ['verbose', 'info', 'warn', 'error']): LogSubscriber {
+    // accept a single level or an array of levels; if omitted, obey minLevel priority
+    let allowed: Set<LogLevel> | null = null;
+    if (levels !== undefined) {
+        const arr = Array.isArray(levels) ? levels : [levels];
+        const mapped = arr.map(l => (l === 'info' ? 'info' : l));
+        allowed = new Set<LogLevel>(mapped as LogLevel[]);
+    }
+
+    // Ensure the directory exists
+    const dir = filePath.split('/').slice(0, -1).join('/');
+    if (dir && !fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const subscriber: LogSubscriber = (entry) => {
+        if (allowed) {
+          if (!allowed.has(entry.level)) return;
+        } else {
+          const pri = Logger.levelPriority[entry.level];
+          const minPri = Logger.levelPriority[Logger.minLevel];
+          if (pri < minPri) return; // filtered out by minLevel
+        }
+        const meta = entry.meta ? ` ${JSON.stringify(entry.meta)}` : '';
+        const out = `[${entry.timestamp}] ${entry.level.toUpperCase()} [${entry.name}]: ${entry.message}${meta}`;
+        
+        try {
+          fs.appendFileSync(filePath, out + '\n');
+        } catch (err) {
+          console.error(`Failed to write to log file ${filePath}:`, err);
+        }
     };
     return subscriber
   }

@@ -1,5 +1,10 @@
 import { BaseModel } from '../models/BaseModel';
 import { BaseSkill, SkillContext } from '../skills/BaseSkill';
+import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
+
+// load config utility
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cfgLoader = require('../config/loadConfig') as typeof import('../config/loadConfig');
 
 export abstract class BaseAgent<M extends BaseModel = BaseModel> {
   readonly id: string;
@@ -7,9 +12,17 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
   role?: string;
   model: M;
   createdAt: Date;
+  /** Optional configuration loaded from agents.json (by `name`) */
+  config: Record<string, any> | null = null;
 
   // Skills that this agent can use
   protected skills: BaseSkill[] = [];
+
+  // Channels attached to this agent
+  protected channels: BaseChannel[] = [];
+
+  // map of channel -> handler used for subscription so we can unregister
+  private channelHandlers = new Map<BaseChannel, (m: ChannelMessage) => Promise<void> | void>();
 
   constructor(model: M, opts: { id?: string; name?: string; role?: string } = {}) {
     this.model = model;
@@ -17,6 +30,15 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
     this.name = opts.name;
     this.role = opts.role;
     this.createdAt = new Date();
+
+    // load agent config using shared loader; default path is ./agents.json, override via AGENTS_CONFIG_PATH
+    const agentConfigPath = process.env.AGENTS_CONFIG_PATH ?? './agents.json';
+    try {
+      const all = cfgLoader.loadConfig(agentConfigPath) || {};
+      this.config = (this.name && all && all[this.name]) || null;
+    } catch {
+      this.config = null;
+    }
   }
 
   /** Register a skill with the agent */
@@ -34,6 +56,24 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
       if (ok) return s;
     }
     return undefined;
+  }
+
+  /** Register a channel and subscribe to incoming messages */
+  registerChannel(channel: BaseChannel) {
+    if (this.channels.includes(channel)) return;
+    this.channels.push(channel);
+    const handler = async (msg: ChannelMessage) => {
+      try { await this.onChannelMessage(msg, channel); } catch (e) { /* swallow */ }
+    };
+    this.channelHandlers.set(channel, handler);
+    channel.onMessage(handler);
+  }
+
+  unregisterChannel(channel: BaseChannel) {
+    this.channels = this.channels.filter(c => c !== channel);
+    const h = this.channelHandlers.get(channel);
+    if (h) channel.offMessage(h);
+    this.channelHandlers.delete(channel);
   }
 
   /** Run the matching skill if any */
@@ -59,4 +99,7 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
     const result = await this.act(plan);
     return result;
   }
+
+  /** Handle an incoming message from a channel. Override in subclasses to customize behavior. */
+  protected abstract onChannelMessage(msg: ChannelMessage, channel: BaseChannel): Promise<void>;
 }
