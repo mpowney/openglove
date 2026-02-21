@@ -25,9 +25,11 @@ export class ConsoleChannel extends BaseChannel {
     if (this.prompt) this.rl.setPrompt(this.prompt);
     // start listening for lines
     this.rl.on('line', async (line: string) => {
-      const msg: ChannelMessage = { id: `console-${Date.now()}`, from: 'console', text: line };
-      await this.emitMessage(msg);
-      if (this.prompt) this.rl.prompt();
+      if (line.trim().length > 0) {
+        const msg: ChannelMessage = { id: `console-${Date.now()}`, from: 'console', text: line };
+        await this.emitMessage(msg);
+        if (this.prompt) this.rl.prompt();
+      }
     });
     // if prompt configured, show it
     if (this.prompt) this.rl.prompt();
