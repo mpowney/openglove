@@ -1,0 +1,30 @@
+{
+  "ChatAgent": {
+    "description": "Example config for the demo ChatAgent",
+    "channels": [
+      {
+        "type": "BlueBubblesChannel",
+        "name": "myBlueBubbles",
+        "opts": {
+          "baseUrl": "http://bluebubbles.example.local:3000",
+          "threadId": "example-thread-id",
+          "apiKey": "REPLACE_WITH_KEY"
+        }
+      },
+      {
+        "type": "WebSocketChannel",
+        "name": "webChat",
+        "opts": {
+          "streaming": true
+        }
+      },
+      {
+        "type": "ConsoleChannel",
+        "name": "consoleChat",
+        "opts": {
+          "streaming": true
+        }
+      }
+    ]
+  }
+}
