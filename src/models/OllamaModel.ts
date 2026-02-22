@@ -43,6 +43,7 @@ export class OllamaModel extends BaseModel {
     const payload: any = { model: this.modelName, prompt: input };
     if (this.contextLength) payload.context_length = this.contextLength;
     if (this.keepAlive) payload.keep_alive = this.keepAlive;
+    logger.verbose('Built payload for OllamaModel', payload);
     return payload;
   }
 

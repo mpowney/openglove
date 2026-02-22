@@ -48,14 +48,14 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
         }
       }
     } catch {
+      logger.warn('Failed to load channels from config');
       // ignore
     }
   }
 
-  async plan(input: string) {
-    // Build a simple prompt from history + input
+  async buildPrompt(): Promise<{ prompt: string }> {
+    // Build a prompt from history, assuming the history already has the latest prompt entered
     const promptParts = this.history.map(m => `${m.role}: ${m.content}`);
-    promptParts.push(`user: ${input}`);
     const prompt = promptParts.join('\n');
     return { prompt };
   }
@@ -102,7 +102,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
     }
 
     // No skill handled it — build a plan and use the model.
-    const plan = await this.plan(input);
+    const plan = await this.buildPrompt();
     // Prefer a model streaming API if available
     const modelAny = this.model as any;
     logger.verbose('Model predictStream type', typeof modelAny.predictStream);

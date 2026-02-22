@@ -84,7 +84,7 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
   }
 
   /** Decide on a plan (e.g., build a prompt or pipeline) */
-  abstract plan(input: any): Promise<any>;
+  abstract buildPrompt(input: any): Promise<any>;
 
   /** Execute the plan using the underlying model or other tools */
   abstract act(plan: any): Promise<any>;
@@ -95,8 +95,8 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
     const skillResult = await this.runSkill(String(input));
     if (skillResult !== undefined) return skillResult;
 
-    const plan = await this.plan(input);
-    const result = await this.act(plan);
+    const prompt = await this.buildPrompt(input);
+    const result = await this.act(prompt  );
     return result;
   }
 

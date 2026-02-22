@@ -9,6 +9,7 @@ export type ConsoleChannelOptions = {
 };
 
 const logger = new Logger('ConsoleChannel');
+let previousContentLength: number = 0;
 
 export class ConsoleChannel extends BaseChannel {
   // handlers managed by BaseChannel
@@ -22,6 +23,7 @@ export class ConsoleChannel extends BaseChannel {
     this.prompt = opts.prompt;
 
     this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    
     if (this.prompt) this.rl.setPrompt(this.prompt);
     // start listening for lines
     this.rl.on('line', async (line: string) => {
@@ -53,7 +55,14 @@ export class ConsoleChannel extends BaseChannel {
       return;
     }
     const out = resp.content ?? '';
-    try { console.log(out); } catch (e) { logger.warn('failed to console.log response', { error: e }); }
+    try { 
+      const content =String(out || '').substring(previousContentLength);
+      if (content.length ===0) return;
+      process.stdout.write(`${content}\n`);
+      previousContentLength = String(out).length;
+    } catch (e) { 
+      logger.warn('failed to console.log response', { error: e }); 
+    }
   }
 
   async sendEvent(ev: ChannelEvent): Promise<void> {
