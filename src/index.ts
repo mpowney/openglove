@@ -120,11 +120,11 @@ async function main() {
 
   // Example: instantiate a ChatAgent configured via agents.json (entry name: "ChatAgent")
   const ollamaUrl = process.env.OLLAMA_URL;
-  const model = new OllamaModel(ollamaUrl ? { baseUrl: ollamaUrl } : {}, { name: 'OllamaModel' });
+  // const model = new OllamaModel(ollamaUrl ? { baseUrl: ollamaUrl } : {}, { name: 'OllamaModel' });
   // const model = new AzureOpenAIModel({}, { name: 'AzureOpenAIModel' });
 
   try {
-    const agent = new ChatAgent(model, { name: 'ChatAgent', role: 'assistant' });
+    const agent = new ChatAgent(undefined, { name: 'ChatAgent', role: 'assistant' });
     logger.log('Configured ChatAgent created from agents.json (if present)');
     logger.log('Channels:', { channels: (agent as any).channels?.map((c: any) => c.name) });
   } catch (e) {

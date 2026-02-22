@@ -9,7 +9,7 @@ const logger = new Logger('ChatAgent');
 export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
   history: Message[] = [];
 
-  constructor(model: M, opts: { id?: string; name?: string; role?: string } = {}) {
+  constructor(model?: M, opts: { id?: string; name?: string; role?: string } = {}) {
     super(model, opts);
     // If config defines channels, instantiate and register them
     try {
@@ -98,6 +98,14 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
       const message = { role: 'assistant' as const, content: String(content), ts: Date.now(), type: 'end' };
       this.history.push(message);
       yield message;
+      return;
+    }
+
+    if (!this.model) {
+      const message = { role: 'system' as const, content: 'Error: No model available to handle the input.', ts: Date.now(), type: 'end' };
+      this.history.push(message);
+      yield message;
+      logger.warn('No model available on agent to handle input');
       return;
     }
 

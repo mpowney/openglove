@@ -25,7 +25,7 @@ export abstract class BaseSkill {
     // Attach config matching this skill's name (if any)
     // Use shared loader so behaviour is consistent with other components
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const cfgLoader = require('../config/loadConfig') as typeof import('../utils/Config');
+    const cfgLoader = require('../Utils/Config') as typeof import('../utils/Config');
     const all = cfgLoader.loadConfig(BaseSkill.configPath) || {};
     const cfg = (this.name && all && all[this.name]) || {};
     this.config = cfg;

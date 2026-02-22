@@ -36,7 +36,7 @@ export abstract class BaseModel {
 
     // load model config using shared loader; default path is ./models.json, override via MODELS_CONFIG_PATH
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const cfgLoader = require('../config/loadConfig') as typeof import('../utils/Config');
+    const cfgLoader = require('../Utils/Config') as typeof import('../utils/Config');
     const modelConfigPath = process.env.MODELS_CONFIG_PATH ?? './models.json';
     const all = cfgLoader.loadConfig(modelConfigPath) || {};
     this.config = (this.name && all && all[this.name]) || null;

@@ -1,16 +1,19 @@
 import { BaseModel } from '../models/BaseModel';
 import { BaseSkill, SkillContext } from '../skills/BaseSkill';
 import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
+import { Logger } from '../utils/Logger';
 
 // load config utility
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const cfgLoader = require('../config/loadConfig') as typeof import('../utils/Config');
+const cfgLoader = require('../Utils/Config') as typeof import('../utils/Config');
+
+const logger = new Logger('BaseAgent');
 
 export abstract class BaseAgent<M extends BaseModel = BaseModel> {
   readonly id: string;
   name?: string;
   role?: string;
-  model: M;
+  model?: M;
   createdAt: Date;
   /** Optional configuration loaded from agents.json (by `name`) */
   config: Record<string, any> | null = null;
@@ -24,7 +27,7 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
   // map of channel -> handler used for subscription so we can unregister
   private channelHandlers = new Map<BaseChannel, (m: ChannelMessage) => Promise<void> | void>();
 
-  constructor(model: M, opts: { id?: string; name?: string; role?: string } = {}) {
+  constructor(model?: M, opts: { id?: string; name?: string; role?: string } = {}) {
     this.model = model;
     this.id = opts.id ?? `agent-${Date.now()}`;
     this.name = opts.name;
@@ -38,6 +41,69 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
       this.config = (this.name && all && all[this.name]) || null;
     } catch {
       this.config = null;
+    }
+
+    if (this.config) {
+      // If config defines skills, instantiate and register them
+      try {
+        const skcfg = this.config.skills;
+        if (Array.isArray(skcfg)) {
+          for (const s of skcfg) {
+            try {
+              let inst: BaseSkill | null = null;
+              const kind = String(s.type ?? s.impl ?? s.skill ?? s.name ?? '').trim();
+              // require an exact class/module name match for security/clarity
+              if (kind) {
+                // perform dynamic import asynchronously and register when ready
+                (async () => {
+                  try {
+                    const mod = await import(/* webpackIgnore: true */ `../skills/${kind}`);
+                    const Ctor = (mod && (mod.default ?? mod[kind])) as any;
+                    if (typeof Ctor === 'function') {
+                      try {
+                        const instance = new Ctor({ ...(s.opts || {}), name: s.name });
+                        this.registerSkill(instance);
+                      } catch (e) {
+                        logger.error('Failed to register skill from config', { error: e instanceof Error ? e.message : String(e) });
+                      }
+                    }
+                  } catch (e) {
+                    logger.warn(`Failed to load skill module for ${kind}`);
+                  }
+                })();
+              }
+              // if (inst) this.registerSkill(inst);
+            } catch (e) {
+              logger.warn('Failed to instantiate skill from config', { error: e instanceof Error ? e.message : String(e) });
+              // ignore individual skill instantiation errors
+            }
+          }
+        }
+      } catch (e) {
+        logger.warn('Failed to load skills from config', { error: e instanceof Error ? e.message : String(e) });
+        // ignore
+      }
+
+      if (!this.model) {
+        try {
+          const modelConfig = this.config.model;
+          if (modelConfig && typeof modelConfig === 'object') {
+            // If no model is set, try to create one from the config
+            const modelType = modelConfig.type;
+            if (modelType) {
+              (async () => {
+                const mod = await import(/* webpackIgnore: true */ `../models/${modelType}`);
+                const Ctor = (mod && (mod.default ?? mod[modelType])) as any;
+                if (typeof Ctor === 'function') {
+                  this.model = new Ctor(modelConfig);
+                }
+              })();
+            }
+          }
+        } catch (e) {
+          logger.warn('Failed to instantiate model from config', { error: e instanceof Error ? e.message : String(e) });
+        }
+      }
     }
   }
 
