@@ -282,11 +282,11 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
       }
 
       // After streaming completes, also send final concatenated message to non-streaming channels
-      const final = this.history.filter(h => h.role === 'assistant').map(h => h.content).join('');
+      const final = this.history[this.history.length - 1];
       for (const ch of this.channels) {
         try {
           if (!ch.supportsStreaming()) {
-            ch.sendResponse({ content: final }).catch(() => {});
+            ch.sendResponse(final).catch(() => {});
           }
         } catch {}
       }
