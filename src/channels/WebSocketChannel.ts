@@ -1,4 +1,4 @@
-import { BaseChannel, ChannelMessage, ChannelResponse, ChannelEvent } from './BaseChannel';
+import { BaseChannel, ChannelMessage, ChannelResponse, ChannelEvent, ChannelRoleType } from './BaseChannel';
 import { Logger } from '../utils/Logger';
 import { loadConfig } from '../utils/Config';
 import WebSocket from 'ws';
@@ -24,8 +24,8 @@ export class WebSocketChannel extends BaseChannel {
   private wss: WebSocket.Server | null = null;
   private clientSockets = new Map<string, WebSocket>();
 
-  constructor(opts: WebSocketChannelOptions & { id?: string; name?: string } = {}) {
-    super({ id: opts.id, name: opts.name ?? 'websocket' });
+  constructor(opts: WebSocketChannelOptions & { id?: string; name?: string, emitRoles?: ChannelRoleType[] } = {}) {
+    super({ id: opts.id, name: opts.name ?? 'websocket', emitRoles: opts.emitRoles });
     this.socket = opts.socket ?? null;
     this.streaming = opts.streaming ?? true;
 
@@ -154,6 +154,7 @@ export class WebSocketChannel extends BaseChannel {
   offMessage(cb: (m: ChannelMessage) => Promise<void> | void): void { this.handlers.delete(cb); }
 
   async sendResponse(resp: ChannelResponse): Promise<void> {
+    if (resp.role && this.emitRoles.indexOf(resp.role) === -1) return;
     // Send to all connected clients
     const sockets: any[] = [this.socket, ...this.clientSockets.values()].filter(s => s);
     
@@ -182,10 +183,9 @@ export class WebSocketChannel extends BaseChannel {
       logger.verbose('Broadcasting full response to sockets', resp);
       for (const socket of sockets) {
         try {
-          const content = (resp.content ?? '').substring(socket.previousContentLength || 0); // send only new content if previous length known
+          const content = (resp.content ?? '')
           if (content.length === 0) continue; // skip if no new content to send
-          socket.send(JSON.stringify({ type: 'message', id: resp.id, content }));
-          socket.previousContentLength = resp.content.length ?? 0; // store length for future use
+          socket.send(JSON.stringify({ type: 'message', id: resp.id, content, role: resp.role }));
         } catch (e) {
           logger.error('socket.send failed', e);
         }

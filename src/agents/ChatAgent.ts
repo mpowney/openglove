@@ -33,7 +33,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
                   const Ctor = (mod && (mod.default ?? mod[kind])) as any;
                   if (typeof Ctor === 'function') {
                     try {
-                      const instance = new Ctor({ ...(c.opts || {}), name: c.name });
+                      const instance = new Ctor({ ...(c.opts || {}), name: c.name, emitRoles: c.emitRoles });
                       this.registerChannel(instance);
                     } catch (_) {
                       // construction failed
@@ -76,6 +76,18 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
 
   }
 
+  /** Emit a message to history and send it to all subscribed channels */
+  private async emitMessage(message: Message): Promise<void> {
+    this.history.push(message);
+    for (const ch of this.channels) {
+      try {
+        ch.sendResponse(message).catch(() => {});
+      } catch {
+        // ignore per-channel errors
+      }
+    }
+  }
+
   async buildPrompt(): Promise<{ prompt: string }> {
     // Build a prompt from history, assuming the history already has the latest prompt entered
     const promptParts = this.history.filter(m => m.role !== 'system').map(m => `${m.role}: ${m.content}`);
@@ -113,7 +125,9 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
    * should also send the final response to all channels when complete.
    */
   async *sendStream(input: string): AsyncIterable<Message> {
-    this.history.push({ role: 'user', content: input, ts: Date.now(), type: 'end' });
+    const userMessage: Message = { role: 'user', content: input, ts: Date.now(), type: 'end' }
+    this.emitMessage(userMessage).catch(() => {});
+    logger.verbose('User input received', { input });
 
     // Use the skillsModel to determine what skills can handle this input
     const skillsModel = this.skillsModel || this.model;
@@ -123,14 +137,13 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
         logger.warn('No skills prompt template defined, skipping skills model step');
       } else {
         const message = { role: 'system' as const, content: skillsPrompt, ts: Date.now(), type: 'end' };
-        this.history.push(message);
+        await this.emitMessage(message).catch(() => {});
         logger.verbose('Running skills model to determine applicable skills with prompt', skillsPrompt);
         try {
           const skillsResp = await skillsModel.predict(skillsPrompt);
           const content = skillsResp.response || String(skillsResp);
           
-          const message = { role: 'system' as const, content, ts: Date.now(), type: 'end' };
-          this.history.push(message);
+          await this.emitMessage({ role: 'system' as const, content, ts: Date.now(), type: 'end' });
           logger.verbose('skills model response', content);
           
           // Check for skill type matches in the response
@@ -157,8 +170,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
                 const skillResult = await (this as unknown as BaseAgent).runSkill(input, skillCtx);
                 if (skillResult !== undefined) {
                   const content = typeof skillResult === 'string' ? skillResult : JSON.stringify(skillResult, null, 2);
-                  const message = { role: 'supplementary' as const, content: String(content), ts: Date.now(), type: 'end' };
-                  this.history.push(message);
+                  await this.emitMessage({ role: 'supplementary' as const, content: String(content), ts: Date.now(), type: 'end' });
                 }
               } catch (e) {
                 logger.warn(`Failed to run skill ${skillName}`, e);
@@ -175,7 +187,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
 
     if (!this.model) {
       const message = { role: 'system' as const, content: 'Error: No model available to handle the input.', ts: Date.now(), type: 'end' };
-      this.history.push(message);
+      await this.emitMessage(message);
       yield message;
       logger.warn('No model available on agent to handle input');
       return;
@@ -285,22 +297,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
     const resp = await this.model.predict(plan.prompt);
     const content = typeof resp === 'object' && resp.output ? resp.output : String(resp);
     const message = { role: 'assistant' as const, content: String(content), ts: Date.now(), type: 'end' };
-    this.history.push(message);
-    // send to all channels
-    for (const ch of this.channels) {
-      try {
-        if (ch.supportsStreaming()) {
-          // wrap single message as a one-item stream
-          const stream = (async function* () { yield String(content); })();
-          // ch.sendResponse({ stream }).catch(() => {});
-        } else {
-          // ch.sendResponse({ content: String(content) }).catch(() => {});
-        }
-      } catch {
-        // ignore
-      }
-    }
-    yield message;
+    await this.emitMessage(message).catch(() => {});
   }
 
   protected async onChannelMessage(msg: ChannelMessage, channel: BaseChannel): Promise<void> {

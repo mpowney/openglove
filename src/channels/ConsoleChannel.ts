@@ -42,6 +42,7 @@ export class ConsoleChannel extends BaseChannel {
   // onMessage/offMessage implemented in BaseChannel
 
   async sendResponse(resp: ChannelResponse): Promise<void> {
+    if (resp.role && this.emitRoles.indexOf(resp.role) === -1) return;
     if (resp.stream && this.streaming) {
       for await (const chunk of resp.stream) {
         try { 
@@ -56,10 +57,9 @@ export class ConsoleChannel extends BaseChannel {
     }
     const out = resp.content ?? '';
     try { 
-      const content =String(out || '').substring(previousContentLength);
+      const content = String(out || '');
       if (content.length ===0) return;
       process.stdout.write(`${content}\n`);
-      previousContentLength = String(out).length;
     } catch (e) { 
       logger.warn('failed to console.log response', { error: e }); 
     }

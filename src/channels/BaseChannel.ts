@@ -8,6 +8,7 @@ export type ChannelMessage = {
 };
 
 export type ChannelEventType = 'typing' | 'thinking' | 'progress';
+export type ChannelRoleType = 'assistant' | 'system' | 'user' | 'supplementary';
 
 export type ChannelEvent = {
   type: ChannelEventType;
@@ -20,7 +21,7 @@ export type ChannelResponse = {
   content?: any;
   // streaming generator of partial pieces
   stream?: AsyncIterable<any>;
-  meta?: Record<string, any>;
+  role?: ChannelRoleType;
 };
 
 const logger = new Logger('BaseChannel');
@@ -28,11 +29,13 @@ const logger = new Logger('BaseChannel');
 export abstract class BaseChannel {
   readonly id: string;
   readonly name: string;
+  readonly emitRoles: ChannelRoleType[] = [];
   public handlers = new Set<(m: ChannelMessage) => Promise<void> | void>();
 
-  constructor(opts: { id?: string; name?: string } = {}) {
+  constructor(opts: { id?: string; name?: string, emitRoles?: ChannelRoleType[] } = {}) {
     this.id = opts.id ?? `channel-${Date.now()}`;
     this.name = opts.name ?? 'channel';
+    this.emitRoles = opts.emitRoles ?? [];
   }
 
   /** Whether this channel supports streaming partial responses */

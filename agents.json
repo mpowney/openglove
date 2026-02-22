@@ -23,6 +23,7 @@
       {
         "type": "BlueBubblesChannel",
         "name": "myBlueBubbles",
+        "emitRoles": ["assistant"],
         "opts": {
           "baseUrl": "http://bluebubbles.example.local:3000",
           "threadId": "example-thread-id",
@@ -32,8 +33,9 @@
       {
         "type": "WebSocketChannel",
         "name": "webChat",
+        "emitRoles": ["assistant", "user", "system", "supplementary"],
         "opts": {
-          "streaming": false,
+          "streaming": true,
           "port": 8080,
           "host": "localhost"
         }
@@ -41,8 +43,9 @@
       {
         "type": "ConsoleChannel",
         "name": "consoleChat",
+        "emitRoles": ["assistant"],
         "opts": {
-          "streaming": true
+          "streaming": false
         }
       }
     ]

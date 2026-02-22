@@ -1,3 +1,4 @@
+import { ChannelRoleType } from '../channels/BaseChannel';
 import { fetchWithTimeout, fetchWithTimeoutAndStream } from '../utils/Fetch';
 import { Logger } from '../utils/Logger';
 
@@ -24,9 +25,9 @@ export abstract class BaseModel {
   metadata: ModelMetadata;
   /** Optional configuration loaded from models.json (by `name`) */
   config: Record<string, any> | null = null;
-  role: "assistant" | "user" | "system" = "assistant";
+  role: ChannelRoleType = "assistant";
 
-  constructor(opts: { id?: string; name?: string; description?: string; version?: string; metadata?: ModelMetadata; role?: "assistant" | "user" | "system" } = {}) {
+  constructor(opts: { id?: string; name?: string; description?: string; version?: string; metadata?: ModelMetadata; role?: ChannelRoleType } = {}) {
     this.id = opts.id ?? `model-${Date.now()}`;
     this.name = opts.name;
     this.description = opts.description;

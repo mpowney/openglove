@@ -27,6 +27,9 @@ export class BlueBubblesChannel extends BaseChannel {
   }
 
   async sendResponse(resp: ChannelResponse): Promise<void> {
+
+    if (resp.role && this.emitRoles.indexOf(resp.role) === -1) return;
+
     // BlueBubbles typically sends a full message via a HTTP API. We POST to /send or configured endpoint.
     const url = `${this.opts.baseUrl.replace(/\/$/, '')}/api/sendMessage`;
     const payload: any = {
