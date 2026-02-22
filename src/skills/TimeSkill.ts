@@ -2,7 +2,11 @@ import { BaseSkill, SkillContext } from './BaseSkill';
 
 export class TimeSkill extends BaseSkill {
   constructor(opts: { id?: string; name?: string; description?: string; tags?: string[] } = {}) {
-    super({ name: opts.name ?? 'TimeSkill', description: opts.description ?? 'Returns current time info', tags: opts.tags ?? ['time'] });
+    super({ 
+      name: opts.name ?? 'TimeSkill', 
+      description: opts.description ?? 'Returns current time info', 
+      tags: opts.tags ?? ['time'] 
+    });
   }
 
   canHandle(input: string): boolean {

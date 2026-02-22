@@ -160,6 +160,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
 
       // Stream via model and broadcast deltas into the controllers
       let accumulated = '';
+      this.history.push({ content: '', ts: Date.now(), type: 'start' });
       for await (const chunk of modelAny.predictStream(plan.prompt)) {
         if (chunk.type === 'delta') {
           accumulated += chunk.content ?? '';

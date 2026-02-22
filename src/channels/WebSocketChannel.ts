@@ -1,6 +1,6 @@
 import { BaseChannel, ChannelMessage, ChannelResponse, ChannelEvent } from './BaseChannel';
 import { Logger } from '../utils/Logger';
-import { loadConfig } from '../config/loadConfig';
+import { loadConfig } from '../utils/Config';
 import WebSocket from 'ws';
 
 export type WebSocketChannelOptions = {

@@ -5,7 +5,7 @@ export type ModelMetadata = Record<string, any>;
 
 export interface Chunk {
     type: 'delta' | 'full' | 'start' | 'end' | string;
-    role: 'system' | 'user' | 'assistant';
+    role?: 'system' | 'user' | 'assistant';
     content?: string;
     [key: string]: any;
 }
@@ -36,7 +36,7 @@ export abstract class BaseModel {
 
     // load model config using shared loader; default path is ./models.json, override via MODELS_CONFIG_PATH
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const cfgLoader = require('../config/loadConfig') as typeof import('../config/loadConfig');
+    const cfgLoader = require('../config/loadConfig') as typeof import('../utils/Config');
     const modelConfigPath = process.env.MODELS_CONFIG_PATH ?? './models.json';
     const all = cfgLoader.loadConfig(modelConfigPath) || {};
     this.config = (this.name && all && all[this.name]) || null;

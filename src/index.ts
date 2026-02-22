@@ -1,5 +1,7 @@
 import { ChatAgent } from './agents/ChatAgent';
 import { TimeSkill } from './skills/TimeSkill';
+import { MemoriesRetrievalSkill } from './skills/MemoriesRetrievalSkill';
+import { MemoriesKeepSkill } from './skills/MemoriesKeepSkill';
 import { SearxngWebSearchSkill } from './skills/web-search/SearxngWebSearchSkill';
 import { OllamaModel } from './models/OllamaModel';
 import { Logger } from './utils/Logger';

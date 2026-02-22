@@ -4,7 +4,7 @@ import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
 
 // load config utility
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const cfgLoader = require('../config/loadConfig') as typeof import('../config/loadConfig');
+const cfgLoader = require('../config/loadConfig') as typeof import('../utils/Config');
 
 export abstract class BaseAgent<M extends BaseModel = BaseModel> {
   readonly id: string;

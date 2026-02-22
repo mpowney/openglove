@@ -2,8 +2,8 @@ export type ConfigMap = Record<string, any> | null;
 
 const cache: Record<string, ConfigMap> = {};
 
-import { Logger } from '../utils/Logger';
-const logger = new Logger('loadConfig');
+import { Logger } from './Logger';
+const logger = new Logger('Config');
 
 export function loadConfig(path: string): ConfigMap {
   if (!path) return null;

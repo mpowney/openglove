@@ -6,5 +6,11 @@
   },
   "TimeSkill": {
     "timezoneHint": "local"
+  },
+  "MemoriesRetrievalSkill": {
+    "memoriesPath": "memories"
+  },
+  "MemoriesKeepSkill": {
+    "memoriesPath": "memories"
   }
 }
