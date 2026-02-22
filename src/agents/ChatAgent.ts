@@ -107,12 +107,67 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
     const modelAny = this.model as any;
     logger.verbose('Model predictStream type', typeof modelAny.predictStream);
     if (typeof modelAny.predictStream === 'function') {
-      // Stream via model and broadcast to channels that support streaming
+      // Create pushable streams for each streaming-capable channel before starting model streaming
+      type StreamController = { stream: AsyncIterable<string>; push: (s: string) => void; end: () => void };
+      const controllers = new Map<BaseChannel, StreamController>();
+
+      const createController = (): StreamController => {
+        const queue: string[] = [];
+        const waiters: Array<() => void> = [];
+        let ended = false;
+
+        const push = (s: string) => {
+          queue.push(s);
+          const w = waiters.shift();
+          if (w) w();
+        };
+        const end = () => {
+          ended = true;
+          const w = waiters.shift();
+          if (w) w();
+        };
+
+        async function* gen() {
+          try {
+            while (!ended || queue.length > 0) {
+              if (queue.length === 0) {
+                await new Promise<void>(res => waiters.push(res));
+                continue;
+              }
+              yield queue.shift() as string;
+            }
+          } finally {
+            // nothing
+          }
+        }
+
+        return { stream: gen(), push, end };
+      };
+
+      // Initialize controllers and start streams on channels
+      for (const ch of this.channels) {
+        try {
+          if (ch.supportsStreaming()) {
+            const ctrl = createController();
+            controllers.set(ch, ctrl);
+            // start the channel-side stream before awaiting model output
+            ch.sendResponse({ id: ch.id, stream: ctrl.stream }).catch(() => {});
+          }
+        } catch (e) {
+          // ignore per-channel errors
+        }
+      }
+
+      // Stream via model and broadcast deltas into the controllers
       let accumulated = '';
       for await (const chunk of modelAny.predictStream(plan.prompt)) {
         if (chunk.type === 'delta') {
           accumulated += chunk.content ?? '';
           this.history[this.history.length - 1] = { role: chunk.role, content: accumulated, ts: Date.now(), type: 'delta' };
+          // push delta to all streaming channels
+          for (const [ch, ctrl] of controllers.entries()) {
+            try { ctrl.push(chunk); } catch { /* ignore */ }
+          }
         }
         else if (chunk.type === 'start') {
           this.history.push({ role: chunk.role, content: '', ts: Date.now(), type: 'start' });
@@ -122,29 +177,17 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
             this.history[this.history.length - 1].content = chunk.content;
           }
           this.history[this.history.length - 1].type = 'end';
-          this.history[this.history.length - 1].ts = Date.now()
-        }
-
-        const channelStreams: any = {};
-        for (const ch of this.channels) {
-          try {
-            if (ch.supportsStreaming() && chunk.type === 'delta') {
-              const stream = (async function* () { yield String(chunk.content); })();
-              const resp: ChannelResponse = { id: ch.id, stream };
-              ch.sendResponse(resp).catch(() => {});
-            }
-            if (chunk.type === 'end') {
-              const messageContent = this.history[this.history.length - 1].content;
-              const stream = (async function* () { yield String(messageContent); })();
-              const resp: ChannelResponse = { id: ch.id, meta: { final: true, complete: true } };
-              ch.sendResponse(resp).catch(() => {});
-            }
-          } catch (e) {
-            // ignore
+          this.history[this.history.length - 1].ts = Date.now();
+          // close all streaming controllers
+          for (const [, ctrl] of controllers.entries()) {
+            try { ctrl.end(); } catch { /* ignore */ }
           }
         }
+
+        // yield updated assistant message so callers can observe progress
         // yield this.history[this.history.length - 1];
       }
+
       // After streaming completes, also send final concatenated message to non-streaming channels
       const final = this.history.filter(h => h.role === 'assistant').map(h => h.content).join('');
       for (const ch of this.channels) {

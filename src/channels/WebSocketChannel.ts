@@ -58,8 +58,8 @@ export class WebSocketChannel extends BaseChannel {
           this.clientSockets.set(clientId, clientSocket);
           logger.log('WebSocket client connected', { clientId, port, host });
 
-          // Attach the client socket to receive chat messages
-          this.attachSocket(clientSocket);
+          // Attach a per-client message handler but do not overwrite primary socket
+          this.attachSocket(clientSocket, { primary: false });
 
           clientSocket.on('close', () => {
             this.clientSockets.delete(clientId);
@@ -116,10 +116,10 @@ export class WebSocketChannel extends BaseChannel {
     return this.clientSockets.size;
   }
 
-  attachSocket(socket: any) {
-    this.socket = socket;
+  attachSocket(socket: any, opts: { primary?: boolean } = { primary: true }) {
+    if (opts.primary !== false) this.socket = socket;
     try {
-      this.socket.on('message', async (data: any) => {
+      socket.on('message', async (data: any) => {
         try {
           let parsed: any = data;
           if (typeof data === 'string') {
@@ -162,19 +162,32 @@ export class WebSocketChannel extends BaseChannel {
       return;
     }
 
-    for (const socket of sockets) {
-      if (resp.stream && this.streaming) {
-        for await (const part of resp.stream) {
-          logger.verbose('Sending streaming response', String(part));
-          try { socket.send(JSON.stringify({ type: 'stream', part })); } catch (e) { logger.warn('socket.send failed', { error: e }); }
+    if (resp.stream && this.streaming) {
+      // consume the stream once and broadcast each chunk to all sockets
+      try {
+        for await (const chunk of resp.stream) {
+          logger.verbose('Broadcasting streaming chunk to sockets', chunk);
+          for (const socket of sockets) {
+            try { socket.send(JSON.stringify({ type: 'stream', chunk, id: resp.id })); } catch (e) { logger.warn('socket.send failed', e); }
+          }
         }
-        try { socket.send(JSON.stringify({ type: 'stream_end', id: resp.id })); } catch (e) { /* ignore */ }
-      } else {
+      } catch (e) {
+        logger.warn('error while reading response stream', { error: e });
+      }
+      // notify end to all sockets
+      for (const socket of sockets) {
+        try { socket.send(JSON.stringify({ type: 'stream_end', id: resp.id })); } catch (e) { logger.warn('socket.send failed', e); }
+      }
+    } else {
+      logger.verbose('Broadcasting full response to sockets', resp);
+      for (const socket of sockets) {
         try {
-          logger.verbose('Sending non-streamed response', resp.content );
-          socket.send(JSON.stringify({ type: 'message', id: resp.id, content: resp.content, meta: resp.meta }));
+          const content = (resp.content ?? '').substring(socket.previousContentLength || 0); // send only new content if previous length known
+          if (content.length === 0) continue; // skip if no new content to send
+          socket.send(JSON.stringify({ type: 'message', id: resp.id, content }));
+          socket.previousContentLength = resp.content.length ?? 0; // store length for future use
         } catch (e) {
-          logger.error('socket.send failed', { error: e });
+          logger.error('socket.send failed', e);
         }
       }
     }

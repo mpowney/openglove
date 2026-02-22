@@ -17,9 +17,9 @@ export type ChannelEvent = {
 
 export type ChannelResponse = {
   id?: string;
-  content?: string;
+  content?: any;
   // streaming generator of partial pieces
-  stream?: AsyncIterable<string>;
+  stream?: AsyncIterable<any>;
   meta?: Record<string, any>;
 };
 

@@ -41,18 +41,15 @@ export class ConsoleChannel extends BaseChannel {
 
   async sendResponse(resp: ChannelResponse): Promise<void> {
     if (resp.stream && this.streaming) {
-      for await (const part of resp.stream) {
+      for await (const chunk of resp.stream) {
         try { 
-          if (resp.meta?.final !== true) {
-            process.stdout.write(`${String(part)}`); 
-          }
-          if (resp.meta?.final === true) {
-            process.stdout.write('\n');
-          }
+          logger.verbose('Sending streaming response', chunk);
+          process.stdout.write(`${chunk.content ?? ''}`); 
         } catch (e) { 
           logger.warn('failed to write stream part', { error: e }); 
         }
       }
+      process.stdout.write('\n');
       return;
     }
     const out = resp.content ?? '';
