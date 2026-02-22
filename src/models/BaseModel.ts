@@ -5,7 +5,7 @@ export type ModelMetadata = Record<string, any>;
 
 export interface Chunk {
     type: 'delta' | 'full' | 'start' | 'end' | string;
-    role?: 'system' | 'user' | 'assistant';
+    role?: 'system' | 'user' | 'assistant' | 'supplementary';
     content?: string;
     [key: string]: any;
 }
@@ -68,6 +68,7 @@ export abstract class BaseModel {
     }
     const url = await this.buildUrl();
     const payload = this.buildPayload(url, input);
+    payload.stream = false; // ensure streaming is disabled for predict
 
     const headers = await this.buildHeaders();
     logger.verbose('predict', { url, payload: payload });

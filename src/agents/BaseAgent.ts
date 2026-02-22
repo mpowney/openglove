@@ -48,27 +48,34 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
       try {
         const skcfg = this.config.skills;
         if (Array.isArray(skcfg)) {
-          for (const s of skcfg) {
+          for (const skill of skcfg) {
             try {
               let inst: BaseSkill | null = null;
-              const kind = String(s.type ?? s.impl ?? s.skill ?? s.name ?? '').trim();
               // require an exact class/module name match for security/clarity
-              if (kind) {
+              if (skill) {
                 // perform dynamic import asynchronously and register when ready
                 (async () => {
                   try {
-                    const mod = await import(/* webpackIgnore: true */ `../skills/${kind}`);
-                    const Ctor = (mod && (mod.default ?? mod[kind])) as any;
+                    // Try to load from skills/index.ts first
+                    const skillsIndex: any = await import(/* webpackIgnore: true */ `../skills`);
+                    let Ctor = skillsIndex[skill];
+                    
+                    // If not found in index, try loading from individual skill file
+                    if (!Ctor) {
+                      const mod = await import(/* webpackIgnore: true */ `../skills/${skill}`);
+                      Ctor = (mod && (mod.default ?? mod[skill])) as any;
+                    }
+                    
                     if (typeof Ctor === 'function') {
                       try {
-                        const instance = new Ctor({ ...(s.opts || {}), name: s.name });
+                        const instance = new Ctor({ ...(this.config?.skillsConfig?.[skill] || {}), name: skill });
                         this.registerSkill(instance);
                       } catch (e) {
-                        logger.error('Failed to register skill from config', { error: e instanceof Error ? e.message : String(e) });
+                        logger.error('Failed to register skill from config', e);
                       }
                     }
                   } catch (e) {
-                    logger.warn(`Failed to load skill module for ${kind}`);
+                    logger.warn(`Failed to load skill module for ${skill}`, e);
                   }
                 })();
               }

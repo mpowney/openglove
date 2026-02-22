@@ -1,13 +1,16 @@
 import { BaseAgent } from './BaseAgent';
 import { BaseModel, Message } from '../models/BaseModel';
 import { SkillContext } from '../skills/BaseSkill';
-import { BaseChannel, ChannelMessage, ChannelResponse } from '../channels/BaseChannel';
+import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
 import Logger from '../utils/Logger';
 
 const logger = new Logger('ChatAgent');
 
 export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
+
   history: Message[] = [];
+  skillsModel?: BaseModel; // Optional separate model for determining what skills to use, if not set the main model will be used
+  skillsPromptTemplate?: string = "You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of skills to those relevant to the user's input. Be succinct, and don't list irrelevant skills. User Input: {prompt}.\n\nSkills: {skills-list}"; // Optional template for the prompt to determine skills, can be set in config
 
   constructor(model?: M, opts: { id?: string; name?: string; role?: string } = {}) {
     super(model, opts);
@@ -51,11 +54,31 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
       logger.warn('Failed to load channels from config');
       // ignore
     }
+    try {
+      const skillsModelConfig = this.config?.skillsModel;
+      if (skillsModelConfig && typeof skillsModelConfig === 'object') {
+        // If no model is set, try to create one from the config
+        const modelType = skillsModelConfig.type;
+        if (modelType) {
+          (async () => {
+            const mod = await import(/* webpackIgnore: true */ `../models/${modelType}`);
+            const Ctor = (mod && (mod.default ?? mod[modelType])) as any;
+            if (typeof Ctor === 'function') {
+              this.skillsModel = new Ctor(skillsModelConfig);
+            }
+          })();
+        }
+      }
+    } catch (e) {
+      logger.warn('Failed to instantiate skills model from config', { error: e instanceof Error ? e.message : String(e) });
+    }
+    this.skillsPromptTemplate = this.config?.skillsPromptTemplate ?? this.skillsPromptTemplate;
+
   }
 
   async buildPrompt(): Promise<{ prompt: string }> {
     // Build a prompt from history, assuming the history already has the latest prompt entered
-    const promptParts = this.history.map(m => `${m.role}: ${m.content}`);
+    const promptParts = this.history.filter(m => m.role !== 'system').map(m => `${m.role}: ${m.content}`);
     const prompt = promptParts.join('\n');
     return { prompt };
   }
@@ -84,21 +107,70 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
   }
 
   /**
-   * Streamed version of `send`. Yields `Message` chunks as they become available.
-   * Useful when models or skills can produce incremental output.
+   * Processes input and yields messages as they are generated. The final message will 
+   * have type 'end', intermediate messages (if supported by the model) will have type 
+   * 'delta'. Note that not all channels may support streaming responses, so the agent 
+   * should also send the final response to all channels when complete.
    */
   async *sendStream(input: string): AsyncIterable<Message> {
     this.history.push({ role: 'user', content: input, ts: Date.now(), type: 'end' });
 
-    // Allow registered skills to handle the input first
-    const skillCtx: SkillContext = { agentId: this.id, model: this.model };
-    const skillResult = await (this as unknown as BaseAgent).runSkill(input, skillCtx);
-    if (skillResult !== undefined) {
-      const content = typeof skillResult === 'string' ? skillResult : JSON.stringify(skillResult, null, 2);
-      const message = { role: 'assistant' as const, content: String(content), ts: Date.now(), type: 'end' };
-      this.history.push(message);
-      yield message;
-      return;
+    // Use the skillsModel to determine what skills can handle this input
+    const skillsModel = this.skillsModel || this.model;
+    if (skillsModel) {
+      const skillsPrompt = this.skillsPromptTemplate?.replace('{prompt}', input).replace('{skills-list}', this.skills.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n'));
+      if (!skillsPrompt) {
+        logger.warn('No skills prompt template defined, skipping skills model step');
+      } else {
+        const message = { role: 'system' as const, content: skillsPrompt, ts: Date.now(), type: 'end' };
+        this.history.push(message);
+        logger.verbose('Running skills model to determine applicable skills with prompt', skillsPrompt);
+        try {
+          const skillsResp = await skillsModel.predict(skillsPrompt);
+          const content = skillsResp.response || String(skillsResp);
+          
+          const message = { role: 'system' as const, content, ts: Date.now(), type: 'end' };
+          this.history.push(message);
+          logger.verbose('skills model response', content);
+          
+          // Check for skill type matches in the response
+          const responseText = String(content).toLowerCase();
+          const skillTypeMatches = this.skills
+            .filter(skill => {
+              // Match skill name
+              if (skill.name && responseText.includes(skill.name.toLowerCase())) return true;
+              // Match skill tags
+              if (skill.tags && skill.tags.some(tag => responseText.includes(tag.toLowerCase()))) return true;
+              return false;
+            })
+            .map(s => s.name);
+          
+          if (skillTypeMatches.length > 0) {
+            logger.verbose('Matched skills from skills model', skillTypeMatches);
+
+            for (const skillName of skillTypeMatches) {
+              const skill = this.skills.find(s => s.name === skillName);
+              if (!skill) continue;
+              // Run each matched skill and yield its result as a system message before the main model response
+              try {
+                const skillCtx: SkillContext = { agentId: this.id, model: this.model };
+                const skillResult = await (this as unknown as BaseAgent).runSkill(input, skillCtx);
+                if (skillResult !== undefined) {
+                  const content = typeof skillResult === 'string' ? skillResult : JSON.stringify(skillResult, null, 2);
+                  const message = { role: 'supplementary' as const, content: String(content), ts: Date.now(), type: 'end' };
+                  this.history.push(message);
+                }
+              } catch (e) {
+                logger.warn(`Failed to run skill ${skillName}`, e);
+              }
+            }
+          } else {
+            logger.verbose('No skills matched from skills model response');
+          }
+        } catch (e) {
+          logger.warn('Failed to run skills model', e);
+        }
+      }
     }
 
     if (!this.model) {
