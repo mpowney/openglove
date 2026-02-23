@@ -20,7 +20,7 @@
     "skillsPrompt": "You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of skills to those relevant to the user's input. Be succinct, and don't list irrelevant skills. User Input: {prompt}.\n\nSkills: {skills-list}",
     "skills": { 
       "local": [ "SearxngWebSearchSkill", "TimeSkill", "MemoriesRetrievalSkill", "MemoriesKeepSkill" ],
-      "remoteSocket": [ "WebBrowserSkill" ]
+      "socket": [ "WebBrowserSkill" ]
     },
     "channels": [
       {

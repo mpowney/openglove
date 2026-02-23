@@ -83,11 +83,11 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
             }
           }
         }
-        if (skcfg.remoteSocket && Array.isArray(skcfg.remoteSocket)) {
-          for (const skill of skcfg.remoteSocket) {
+        if (skcfg.socket && Array.isArray(skcfg.socket)) {
+          for (const skill of skcfg.socket) {
             try {
               (async () => {
-                const instance = new (await import(/* webpackIgnore: true */ `../skills/RemoteSkill`)).RemoteSkill(skill, this.config?.remoteSocketConfig);
+                const instance = new (await import(/* webpackIgnore: true */ `../skills/RemoteSkill`)).RemoteSkill(skill, this.config?.socket);
                 this.registerSkill(instance);
               })().catch(e => logger.warn('Failed to instantiate remote socket skill from config', { error: e instanceof Error ? e.message : String(e) }));
                 // ignore individual skill instantiation errors
