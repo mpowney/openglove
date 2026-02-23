@@ -7,10 +7,12 @@
   "scripts": {
     "build": "tsc -b",
     "dev": "ts-node src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "ts-node src/test.ts"
   },
   "dependencies": {
-    "@openglove/base": "workspace:*"
+    "@openglove/base": "workspace:*",
+    "playwright": "^1.58.2"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",
