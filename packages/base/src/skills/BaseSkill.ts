@@ -37,5 +37,11 @@ export abstract class BaseSkill {
   /** Execute the skill and return a result object */
   abstract run(input: string, ctx?: SkillContext): Promise<any>;
 
-  // config loading now delegated to shared loader in src/config/loadConfig.ts
+  async getInfo(): Promise<{ name: string; description?: string; tags: string[] }> {
+    return {
+      name: this.name || this.constructor.name,
+      description: this.description,
+      tags: this.tags
+    };
+  }
 }

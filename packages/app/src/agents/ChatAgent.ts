@@ -131,7 +131,8 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
     // Use the skillsModel to determine what skills can handle this input
     const skillsModel = this.skillsModel || this.model;
     if (skillsModel) {
-      const skillsPrompt = this.skillsPromptTemplate?.replace('{prompt}', input).replace('{skills-list}', this.skills.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n'));
+      const skillsInfo = await Promise.all(this.skills.map(s => s.getInfo().catch(() => ({ name: s.name || 'Unknown', description: undefined, tags: [] }))));
+      const skillsPrompt = this.skillsPromptTemplate?.replace('{prompt}', input).replace('{skills-list}', skillsInfo.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n'));
       if (!skillsPrompt) {
         logger.warn('No skills prompt template defined, skipping skills model step');
       } else {

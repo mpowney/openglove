@@ -17,7 +17,7 @@ export class MemoriesRetrievalSkill extends BaseSkill {
     this.memoriesPath = path.isAbsolute(configPath) ? configPath : path.join(process.cwd(), configPath);
   }
 
-  canHandle(input: string): boolean {
+  async canHandle(input: string): Promise<boolean> {
     const s = (input || '').toLowerCase();
     return /\b(memories|recall|remember|stored memories|my memories|what do you remember)\b/.test(s);
   }

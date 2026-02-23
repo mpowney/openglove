@@ -44,8 +44,8 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
       // If config defines skills, instantiate and register them
       try {
         const skcfg = this.config.skills;
-        if (Array.isArray(skcfg)) {
-          for (const skill of skcfg) {
+        if (skcfg.local && Array.isArray(skcfg.local)) {
+          for (const skill of skcfg.local) {
             try {
               let inst: BaseSkill | null = null;
               // require an exact class/module name match for security/clarity
@@ -79,6 +79,20 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
               // if (inst) this.registerSkill(inst);
             } catch (e) {
               logger.warn('Failed to instantiate skill from config', { error: e instanceof Error ? e.message : String(e) });
+              // ignore individual skill instantiation errors
+            }
+          }
+        }
+        if (skcfg.remoteSocket && Array.isArray(skcfg.remoteSocket)) {
+          for (const skill of skcfg.remoteSocket) {
+            try {
+              (async () => {
+                const instance = new (await import(/* webpackIgnore: true */ `../skills/RemoteSkill`)).RemoteSkill(skill, this.config?.remoteSocketConfig);
+                this.registerSkill(instance);
+              })().catch(e => logger.warn('Failed to instantiate remote socket skill from config', { error: e instanceof Error ? e.message : String(e) }));
+                // ignore individual skill instantiation errors
+            } catch (e) {
+              logger.warn('Failed to instantiate remote socket skill from config', { error: e instanceof Error ? e.message : String(e) });
               // ignore individual skill instantiation errors
             }
           }

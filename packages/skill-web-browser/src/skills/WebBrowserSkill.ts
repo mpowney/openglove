@@ -28,7 +28,7 @@ export class WebBrowserSkill extends BaseSkill {
     });
   }
 
-  canHandle(input: string): boolean {
+  async canHandle(input: string): Promise<boolean> {
     const s = (input || '').toLowerCase();
     return /\b(browse a web page|browse to|open site|open a web page)\b/.test(s);
   }

@@ -5,7 +5,7 @@ export class SearxngWebSearchSkill extends BaseWebSearchSkill {
     super({ ...opts, name: opts.name ?? 'SearxngWebSearchSkill' });
   }
 
-  canHandle(input: string): boolean {
+  async canHandle(input: string): Promise<boolean> {
     const s = (input || '').toLowerCase();
     return /\b(search|find|look up|lookup|look for|what is|who is|where is|google|bing|duckduckgo|searx|searxng)\b/.test(s);
   }

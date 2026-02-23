@@ -5,7 +5,7 @@ export class BraveWebSearchSkill extends BaseWebSearchSkill {
     super({ ...opts, name: opts.name ?? 'BraveWebSearchSkill' });
   }
 
-  canHandle(input: string): boolean {
+  async canHandle(input: string): Promise<boolean> {
     const s = (input || '').toLowerCase();
     return /\b(search|find|brave|look up|lookup|look for|what is|who is|where is)\b/.test(s);
   }

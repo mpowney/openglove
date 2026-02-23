@@ -17,7 +17,7 @@ export class MemoriesKeepSkill extends BaseSkill {
     this.memoriesPath = path.isAbsolute(configPath) ? configPath : path.join(process.cwd(), configPath);
   }
 
-  canHandle(input: string): boolean {
+  async canHandle(input: string): Promise<boolean> {
     const s = (input || '').toLowerCase();
     return /\b(remember|memorize|memorise|keep in mind|store this|save this memory|note this)\b/.test(s);
   }

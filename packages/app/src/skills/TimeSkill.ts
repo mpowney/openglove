@@ -9,7 +9,7 @@ export class TimeSkill extends BaseSkill {
     });
   }
 
-  canHandle(input: string): boolean {
+  async canHandle(input: string): Promise<boolean> {
     const s = (input || '').toLowerCase();
     return /\b(time|what time|current time|now|timezone)\b/.test(s);
   }
