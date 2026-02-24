@@ -1,3 +1,5 @@
+import { BaseSkillRunner } from '../runner/BaseSkillRunner';
+
 export type SkillContext = {
   agentId?: string;
   model?: any;
@@ -11,6 +13,8 @@ export abstract class BaseSkill {
   tags: string[];
   /** Config object loaded from skills.json (by `name`) */
   config: Record<string, any>;
+  /** Optional skill runner for executing logic before/after skill execution */
+  protected skillRunner: BaseSkillRunner | null = null;
 
   /** Path used to load the skills config; env SKILLS_CONFIG_PATH or ./skills.json */
   private static get configPath(): string {
@@ -31,11 +35,50 @@ export abstract class BaseSkill {
     this.config = cfg;
   }
 
+  /**
+   * Set the skill runner for this skill
+   */
+  setSkillRunner(runner: BaseSkillRunner | null): void {
+    this.skillRunner = runner;
+  }
+
+  /**
+   * Get the skill runner instance
+   */
+  getSkillRunner(): BaseSkillRunner | null {
+    return this.skillRunner;
+  }
+
+  /**
+   * Execute a function with skill runner before/after hooks
+   * Subclasses can use this to wrap their run() implementation
+   */
+  protected async executeWithRunner<T>(
+    fn: (input: any, ctx?: SkillContext) => Promise<T>,
+    input: any,
+    ctx?: SkillContext
+  ): Promise<T> {
+    // Execute before hook if runner is configured
+    if (this.skillRunner) {
+      await this.skillRunner.runBeforeSkill(this, input, ctx);
+    }
+
+    // Execute the actual function
+    const result = await fn(input, ctx);
+
+    // Execute after hook if runner is configured
+    if (this.skillRunner) {
+      await this.skillRunner.runAfterSkill(this, result, input, ctx);
+    }
+
+    return result;
+  }
+
   /** Return true if this skill can handle the given input */
   abstract canHandle(input: string, ctx?: SkillContext): boolean | Promise<boolean>;
 
   /** Execute the skill and return a result object */
-  abstract run(input: string, ctx?: SkillContext): Promise<any>;
+  abstract run(input: any, ctx?: SkillContext): Promise<any>;
 
   async getInfo(): Promise<{ name: string; description?: string; tags: string[] }> {
     return {

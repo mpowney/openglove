@@ -22,7 +22,10 @@ export class MemoriesKeepSkill extends BaseSkill {
     return /\b(remember|memorize|memorise|keep in mind|store this|save this memory|note this)\b/.test(s);
   }
 
-  async run(input: string, _ctx?: SkillContext) {
+  async run(input: any, _ctx?: SkillContext) {
+    // Extract string input if provided in object format
+    const inputStr = typeof input === 'object' && input?.input ? input.input : input;
+    
     try {
       // Ensure memories directory exists
       if (!fs.existsSync(this.memoriesPath)) {
@@ -49,10 +52,10 @@ export class MemoriesKeepSkill extends BaseSkill {
       if (fs.existsSync(filePath)) {
         // File exists, read and append
         fileContent = fs.readFileSync(filePath, 'utf-8');
-        fileContent += `\n\n### Memorised at ${timeStr}\n${input}`;
+        fileContent += `\n\n### Memorised at ${timeStr}\n${inputStr}`;
       } else {
         // File doesn't exist, create with heading
-        fileContent = `# ${heading}\n\n### Memorised at ${timeStr}\n${input}`;
+        fileContent = `# ${heading}\n\n### Memorised at ${timeStr}\n${inputStr}`;
       }
 
       // Write to file

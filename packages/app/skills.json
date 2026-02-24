@@ -1,4 +1,5 @@
-{ "SearxngWebSearchSkill": {
+{ 
+  "SearxngWebSearchSkill": {
     "baseUrl": "https://searxng.example.com",
     "timeout": 8000,
     "resultCount": 3,

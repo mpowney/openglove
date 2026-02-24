@@ -24,7 +24,7 @@ async function main() {
   });
 
   server.registerMethod('run', async (params: any) => {
-    let input: string;
+    let input: any;
     let ctx: any;
 
     if (Array.isArray(params)) {
@@ -35,12 +35,12 @@ async function main() {
       input = params;
     }
 
-    return await skill.run(input as string, ctx);
+    return await skill.run(input, ctx);
   });
 
   try {
     await server.start();
-    logger.log(`WebBrowserSkill server listening on ${server.getSocketPath()}`);
+    logger.log(`Server listening on ${server.getSocketPath()}`);
     
     // Keep the server running
     await new Promise(() => {});

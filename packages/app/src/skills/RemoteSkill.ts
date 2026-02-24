@@ -2,8 +2,8 @@ import * as net from 'net';
 import * as path from 'path';
 import { BaseSkill, classNameToSocketName, JSONRPCRequest, JSONRPCResponse, Logger, SkillContext } from '@openglove/base';
 
-
 const logger = new Logger('RemoteSkill');
+
 /**
  * RemoteSkill connects to a Unix domain socket and makes JSON-RPC calls
  */
@@ -24,8 +24,14 @@ export class RemoteSkill extends BaseSkill {
     return debug;
   }
 
-  async run(_input: string, _ctx?: SkillContext) {
-    return await this.call('run', _input, _ctx);
+  async run(_input: any, _ctx?: SkillContext) {
+    return await this.executeWithRunner(
+      async (input: any, ctx?: SkillContext) => {
+        return await this.call('run', input, ctx);
+      },
+      _input,
+      _ctx
+    );
   }
 
   /**

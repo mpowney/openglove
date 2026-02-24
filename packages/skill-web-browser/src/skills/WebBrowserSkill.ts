@@ -33,14 +33,16 @@ export class WebBrowserSkill extends BaseSkill {
     return /\b(browse a web page|browse to|open site|open a web page)\b/.test(s);
   }
 
-  async run(_input: string, _ctx?: SkillContext) {
+  async run(_input: any, _ctx?: SkillContext) {
     let config: WebBrowserSkillInput;
     
-    // Try to parse _input as JSON; if it fails, treat it as a plain URL string
-    try {
-      config = JSON.parse(_input || '{}');
-    } catch {
-      config = { url: (_input || '').trim() };
+    // Accept input as object or string
+    if (typeof _input === 'string') {
+      config = { url: _input.trim() };
+    } else if (typeof _input === 'object' && _input !== null) {
+      config = _input as WebBrowserSkillInput;
+    } else {
+      throw new Error('Invalid input type for WebBrowserSkill.run');
     }
 
     if (!config.url) throw new Error('No URL provided to WebBrowserSkill.run');
