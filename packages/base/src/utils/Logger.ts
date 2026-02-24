@@ -17,9 +17,60 @@ export class Logger {
   private static subscribers = new Set<LogSubscriber>();
   private static levelPriority: Record<LogLevel, number> = { verbose: 0, info: 1, warn: 2, error: 3 };
   private static minLevel: LogLevel = (process.env.LOG_LEVEL as LogLevel) ?? 'verbose';
+  private static secretValues: Set<string> = new Set();
 
   constructor(name?: string) {
     this.name = name ?? 'root';
+  }
+
+  /**
+   * Register secret values that should be redacted from logs
+   * @param secrets Array of secret values or a map of secret values
+   */
+  static registerSecrets(secrets: string[] | Record<string, string>): void {
+    const values = Array.isArray(secrets) ? secrets : Object.values(secrets);
+    for (const value of values) {
+      if (value && typeof value === 'string' && value.length > 0) {
+        Logger.secretValues.add(value);
+      }
+    }
+  }
+
+  /**
+   * Clear all registered secrets
+   */
+  static clearSecrets(): void {
+    Logger.secretValues.clear();
+  }
+
+  /**
+   * Redact secret values from a string or object
+   */
+  private static redactSecrets(value: any): any {
+    if (Logger.secretValues.size === 0) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      let redacted = value;
+      for (const secret of Logger.secretValues) {
+        if (secret.length > 0) {
+          redacted = redacted.split(secret).join('[REDACTED]');
+        }
+      }
+      return redacted;
+    } else if (Array.isArray(value)) {
+      return value.map((item) => Logger.redactSecrets(item));
+    } else if (typeof value === 'object' && value !== null) {
+      const result: Record<string, any> = {};
+      for (const key in value) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
+          result[key] = Logger.redactSecrets(value[key]);
+        }
+      }
+      return result;
+    }
+    return value;
   }
 
   private emit(level: LogLevel, message: string, meta?: any) {
@@ -27,8 +78,8 @@ export class Logger {
       timestamp: new Date().toISOString(),
       level,
       name: this.name,
-      message,
-      meta
+      message: Logger.redactSecrets(message),
+      meta: Logger.redactSecrets(meta)
     };
     for (const s of Array.from(Logger.subscribers)) {
       try { s(entry); } catch { /* ignore subscriber errors */ }

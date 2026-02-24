@@ -44,6 +44,10 @@ export function loadSecrets(secretsDir: string): SecretsMap {
 
     secretsCache = secrets;
     logger.log('Loaded secrets', { totalCount: Object.keys(secrets).length });
+    
+    // Register secrets with Logger for redaction
+    Logger.registerSecrets(secrets);
+    
     return secrets;
   } catch (e: unknown) {
     logger.error('Failed to load secrets', { secretsDir, error: e });
@@ -88,4 +92,5 @@ export function replaceSecrets(value: any, secrets: SecretsMap): any {
  */
 export function clearSecretsCache(): void {
   secretsCache = null;
+  Logger.clearSecrets();
 }

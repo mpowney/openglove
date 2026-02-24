@@ -180,7 +180,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
             logger.verbose('No skills matched from skills model response');
           }
         } catch (e) {
-          logger.warn('Failed to run skills model', e);
+          logger.error('Failed to run skills model', { error: e, config: this.config?.skillsModel });
         }
       }
     }
