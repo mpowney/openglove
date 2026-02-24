@@ -1,6 +1,6 @@
 { 
   "SearxngWebSearchSkill": {
-    "baseUrl": "https://searxng.example.com",
+    "baseUrl": "{SECRET:searxng-instance-url}",
     "timeout": 8000,
     "resultCount": 3,
     "params": { "engines": "duckduckgo,google,bing,brave" }

@@ -2,7 +2,7 @@
   "RinseAndRepeatRunner": {
     "runBeforeModel": {
       "OllamaModel": {
-        "baseUrl": "http://ollama.example.com:11434",
+        "baseUrl": "{SECRET:ollama-base-url}",
         "model": "llama3.2:1b",
         "temperature": 0.7,
         "maxTokens": 2048,

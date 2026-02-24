@@ -3,7 +3,7 @@
     "description": "Example config for the demo ChatAgent",
     "model": {
       "type": "OllamaModel",
-      "baseUrl": "http://ollama.example.com:11434",
+      "baseUrl": "{SECRET:ollama-base-url}",
       "model": "llama3.2:1b",
       "temperature": 0.7,
       "maxTokens": 2048,
@@ -11,7 +11,7 @@
     },
     "skillsModel": {
       "type": "OllamaModel",
-      "baseUrl": "http://ollama.example.com:11434",
+      "baseUrl": "{SECRET:ollama-base-url}",
       "model": "olmo-3:7b-instruct",
       "temperature": 0,
       "maxTokens": 16384,
@@ -28,9 +28,9 @@
         "name": "myBlueBubbles",
         "emitRoles": ["assistant"],
         "opts": {
-          "baseUrl": "http://bluebubbles.example.local:3000",
+          "baseUrl": "{SECRET:bluebubbles-base-url}",
           "threadId": "example-thread-id",
-          "apiKey": "REPLACE_WITH_KEY"
+          "apiKey": "{SECRET:bluebubbles-api-key}"
         }
       },
       {

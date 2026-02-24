@@ -1,6 +1,6 @@
 {
   "OllamaModel": {
-    "baseUrl": "http://ollama.example.com:11434",
+    "baseUrl": "{SECRET:ollama-base-url}",
     "model": "llama3.2:1b",
     "temperature": 0.7,
     "maxTokens": 2048,
@@ -10,18 +10,18 @@
     "maxTokens": 2048
   },
   "AzureOpenAIModel-o4-mini": {
-    "baseUrl": "https://contoso.cognitiveservices.azure.com/openai/deployments/o4-mini/chat/completions?api-version=2025-01-01-preview",
-    "apiKey": "AZURE_OPENAI_API_KEY",
+    "baseUrl": "{SECRET:azure-openai-base-url-o4-mini}",
+    "apiKey": "{SECRET:azure-foundry-api-key}",
     "model": "o4-mini"
   },
   "AzureOpenAIModel": {
-    "baseUrl": "https://contoso.cognitiveservices.azure.com/openai/deployments/o4-mini/chat/completions?api-version=2025-01-01-preview",
-    "apiKey": "AZURE_OPENAI_API_KEY",
+    "baseUrl": "{SECRET:azure-openai-base-url-gpt-5-mini}",
+    "apiKey": "{SECRET:azure-foundry-api-key}",
     "model": "gpt-5-mini"
   },
   "AzureOpenAIModel-Kimi-K2.5": {
-    "baseUrl": "https://contoso.cognitiveservices.azure.com/openai/deployments/o4-mini/chat/completions?api-version=2025-01-01-preview",
-    "apiKey": "AZURE_OPENAI_API_KEY",
+    "baseUrl": "{SECRET:azure-openai-base-url-kimi-k2.5}",
+    "apiKey": "{SECRET:azure-foundry-api-key}",
     "model": "Kimi-K2.5"
   }
 }
