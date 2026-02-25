@@ -14,7 +14,7 @@ export class TimeSkill extends BaseSkill {
     return /\b(time|what time|current time|now|timezone)\b/.test(s);
   }
 
-  async run(_input: any, _ctx?: SkillContext) {
+  protected async runSkill(_input: any, _ctx?: SkillContext) {
     // Extract string input if provided in object format
     const inputStr = typeof _input === 'object' && _input?.input ? _input.input : _input;
     

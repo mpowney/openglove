@@ -1,4 +1,6 @@
 import { BaseSkillRunner } from '../runner/BaseSkillRunner';
+import { Logger } from '../utils/Logger';
+import { containsSecrets, getSecretCount } from '../utils/Secrets';
 
 export type SkillContext = {
   agentId?: string;
@@ -15,6 +17,7 @@ export abstract class BaseSkill {
   config: Record<string, any>;
   /** Optional skill runner for executing logic before/after skill execution */
   protected skillRunner: BaseSkillRunner | null = null;
+  private logger: Logger;
 
   /** Path used to load the skills config; env SKILLS_CONFIG_PATH or ./skills.json */
   private static get configPath(): string {
@@ -26,6 +29,7 @@ export abstract class BaseSkill {
     this.name = opts.name;
     this.description = opts.description;
     this.tags = opts.tags ?? [];
+    this.logger = new Logger(this.name || this.constructor.name);
     // Attach config matching this skill's name (if any)
     // Use shared loader so behaviour is consistent with other components
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -78,7 +82,26 @@ export abstract class BaseSkill {
   abstract canHandle(input: string, ctx?: SkillContext): boolean | Promise<boolean>;
 
   /** Execute the skill and return a result object */
-  abstract run(input: any, ctx?: SkillContext): Promise<any>;
+  async run(input: any, ctx?: SkillContext): Promise<any> {
+    // Check if input contains any registered secrets and warn if it does
+    if (getSecretCount() > 0 && containsSecrets(input)) {
+      this.logger.warn('Input contains secret values that should not be passed directly', {
+        skillId: this.id,
+        skillName: this.name
+      });
+      throw new Error('Input contains secret values that should not be passed directly');
+    }
+
+    return await this.executeWithRunner(
+      async (input: any, ctx?: SkillContext) => {
+        return await this.runSkill(input, ctx);
+      },
+      input,
+      ctx
+    );
+  }
+
+  protected abstract runSkill(input: any, ctx?: SkillContext): Promise<any>;
 
   async getInfo(): Promise<{ name: string; description?: string; tags: string[] }> {
     return {

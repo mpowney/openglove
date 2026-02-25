@@ -3,6 +3,7 @@ const logger = new Logger('Secrets');
 
 type SecretsMap = Record<string, string>;
 let secretsCache: SecretsMap | null = null;
+let registeredSecrets: string[] = [];
 
 /**
  * Load all secrets from JSON files in the secrets directory
@@ -45,7 +46,8 @@ export function loadSecrets(secretsDir: string): SecretsMap {
     secretsCache = secrets;
     logger.log('Loaded secrets', { totalCount: Object.keys(secrets).length });
     
-    // Register secrets with Logger for redaction
+    // Store secrets locally and register with Logger for redaction
+    registeredSecrets = Object.values(secrets);
     Logger.registerSecrets(secrets);
     
     return secrets;
@@ -88,9 +90,58 @@ export function replaceSecrets(value: any, secrets: SecretsMap): any {
 }
 
 /**
+ * Get the number of registered secrets
+ */
+export function getSecretCount(): number {
+  return registeredSecrets.length;
+}
+
+/**
+ * Get all registered secret values
+ */
+export function getRegisteredSecrets(): string[] {
+  return registeredSecrets.slice();
+}
+
+/**
+ * Check if a value contains any registered secrets
+ * @param value The value to check for secrets
+ * @returns True if the value contains any registered secrets
+ */
+export function containsSecrets(value: any): boolean {
+  if (getSecretCount() === 0) {
+    return false;
+  }
+
+  const registeredSecrets = getRegisteredSecrets();
+
+  if (typeof value === 'string') {
+    for (const secret of registeredSecrets) {
+      if (secret.length > 0 && value.includes(secret)) {
+        return true;
+      }
+    }
+    return false;
+  } else if (Array.isArray(value)) {
+    return value.some((item) => containsSecrets(item));
+  } else if (typeof value === 'object' && value !== null) {
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        if (containsSecrets(value[key])) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  return false;
+}
+
+/**
  * Clear the secrets cache (useful for testing)
  */
 export function clearSecretsCache(): void {
   secretsCache = null;
+  registeredSecrets = [];
   Logger.clearSecrets();
 }

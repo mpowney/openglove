@@ -92,7 +92,7 @@ export abstract class BaseWebSearchSkill extends BaseSkill {
 
   protected abstract buildSearchUrl(query: string): string;
 
-  async run(input: any, _ctx?: SkillContext): Promise<SearchResponse> {
+  protected async runSkill(input: any, _ctx?: SkillContext): Promise<SearchResponse> {
     // Extract string input if provided in object format
     const q = typeof input === 'object' && input?.input ? input.input : input;
     const url = this.buildSearchUrl(q);

@@ -22,7 +22,7 @@ export class MemoriesRetrievalSkill extends BaseSkill {
     return /\b(memories|recall|remember|stored memories|my memories|what do you remember)\b/.test(s);
   }
 
-  async run(_input: any, _ctx?: SkillContext) {
+  protected async runSkill(_input: any, _ctx?: SkillContext) {
     // Extract string input if provided in object format (not used in this skill but kept for consistency)
     const inputStr = typeof _input === 'object' && _input?.input ? _input.input : _input;
     

@@ -22,7 +22,7 @@ export class MemoriesKeepSkill extends BaseSkill {
     return /\b(remember|memorize|memorise|keep in mind|store this|save this memory|note this)\b/.test(s);
   }
 
-  async run(input: any, _ctx?: SkillContext) {
+  protected async runSkill(input: any, _ctx?: SkillContext) {
     // Extract string input if provided in object format
     const inputStr = typeof input === 'object' && input?.input ? input.input : input;
     
