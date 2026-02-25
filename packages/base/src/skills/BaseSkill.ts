@@ -63,17 +63,13 @@ export abstract class BaseSkill {
     ctx?: SkillContext
   ): Promise<T> {
     // Execute before hook if runner is configured
-    if (this.skillRunner) {
-      await this.skillRunner.runBeforeSkill(this, input, ctx);
-    }
+    await this.skillRunner?.runBeforeSkill(this, input, ctx);
 
     // Execute the actual function
     const result = await fn(input, ctx);
 
     // Execute after hook if runner is configured
-    if (this.skillRunner) {
-      await this.skillRunner.runAfterSkill(this, result, input, ctx);
-    }
+    await this.skillRunner?.runAfterSkill(this, result, input, ctx);
 
     return result;
   }
@@ -92,13 +88,19 @@ export abstract class BaseSkill {
       throw new Error('Input contains secret values that should not be passed directly');
     }
 
-    return await this.executeWithRunner(
-      async (input: any, ctx?: SkillContext) => {
-        return await this.runSkill(input, ctx);
-      },
-      input,
-      ctx
-    );
+    if (this.skillRunner) {
+      this.logger.verbose('Executing skill with runner', { skillId: this.id, skillName: this.name });
+      return await this.executeWithRunner(
+        async (input: any, ctx?: SkillContext) => {
+          return await this.runSkill(input, ctx);
+        },
+        input,
+        ctx
+      );
+    } else {
+      this.logger.verbose('Executing skill without runner', { skillId: this.id, skillName: this.name });
+      return await this.runSkill(input, ctx);
+    }
   }
 
   protected abstract runSkill(input: any, ctx?: SkillContext): Promise<any>;
