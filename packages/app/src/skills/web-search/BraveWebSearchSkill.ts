@@ -2,7 +2,12 @@ import { BaseWebSearchSkill, BaseWebSearchOptions } from './BaseWebSearchSkill';
 
 export class BraveWebSearchSkill extends BaseWebSearchSkill {
   constructor(opts: BaseWebSearchOptions & { id?: string; name?: string; description?: string; tags?: string[] }) {
-    super({ ...opts, name: opts.name ?? 'BraveWebSearchSkill' });
+    super({ 
+      ...opts, 
+      name: opts.name ?? 'BraveWebSearchSkill',
+      description: opts.description ?? 'Searches the web using the Brave search engine API',
+      tags: opts.tags ?? ['web-search', 'brave'], 
+    });
   }
 
   async canHandle(input: string): Promise<boolean> {

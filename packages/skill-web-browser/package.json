@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc -b",
     "dev": "ts-node src/index.ts",
+    "dev-socket": "ts-node src/socket.ts",
     "socket": "node dist/socket.js",
     "test": "ts-node src/test.ts"
   },

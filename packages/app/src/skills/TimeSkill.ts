@@ -5,6 +5,7 @@ export class TimeSkill extends BaseSkill {
     super({ 
       name: opts.name ?? 'TimeSkill', 
       description: opts.description ?? 'Returns current time info', 
+      paramaterSchema: '{}',
       tags: opts.tags ?? ['time'] 
     });
   }

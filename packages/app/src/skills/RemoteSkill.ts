@@ -25,7 +25,7 @@ export class RemoteSkill extends BaseSkill {
   }
 
   protected async runSkill(_input: any, _ctx?: SkillContext) {
-    return await this.call('run', _input, _ctx);
+    return await this.call('runSkill', _input, _ctx);
   }
 
   /**

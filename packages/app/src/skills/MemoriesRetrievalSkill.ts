@@ -9,6 +9,7 @@ export class MemoriesRetrievalSkill extends BaseSkill {
     super({
       name: opts.name ?? 'MemoriesRetrievalSkill',
       description: opts.description ?? 'Retrieves all stored memories from markdown files',
+      paramaterSchema: '{}',
       tags: opts.tags ?? ['memories', 'recall', 'remember']
     });
     

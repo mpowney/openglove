@@ -27,6 +27,35 @@ export abstract class BaseModel {
   config: Record<string, any> | null = null;
   role: ChannelRoleType = "assistant";
 
+  static async require(name: string, config?: any): Promise<BaseModel> {
+
+    const basePath = `${require.main?.path}/models`;
+    try {
+      // Try to load from models/index.ts first
+      const index: any = await import(/* webpackIgnore: true */ `${basePath}`);
+      let Ctor = index[name];
+      
+      // If not found in index, try loading from individual skill file
+      if (!Ctor) {
+        const mod = await import(/* webpackIgnore: true */ `${basePath}/${name}`);
+        Ctor = (mod && (mod.default ?? mod[name])) as any;
+      }
+      
+      if (typeof Ctor === 'function') {
+        try {
+          const instance = new Ctor({ ...(config || {}), name: name });
+          return instance;
+        } catch (e) {
+          logger.error('Failed to register model from config', e);
+        }
+      }
+    } catch (e) {
+      logger.warn(`Failed to load model module for ${name}`, e);
+    }
+    throw new Error(`Model ${name} not found in path ${basePath} or is not a constructor`);
+  }
+
+
   constructor(opts: { id?: string; name?: string; description?: string; version?: string; metadata?: ModelMetadata; role?: ChannelRoleType } = {}) {
     this.id = opts.id ?? `model-${Date.now()}`;
     this.name = opts.name;

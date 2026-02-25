@@ -50,31 +50,36 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
               let inst: BaseSkill | null = null;
               // require an exact class/module name match for security/clarity
               if (skill) {
-                // perform dynamic import asynchronously and register when ready
                 (async () => {
-                  try {
-                    // Try to load from skills/index.ts first
-                    const skillsIndex: any = await import(/* webpackIgnore: true */ `../skills`);
-                    let Ctor = skillsIndex[skill];
-                    
-                    // If not found in index, try loading from individual skill file
-                    if (!Ctor) {
-                      const mod = await import(/* webpackIgnore: true */ `../skills/${skill}`);
-                      Ctor = (mod && (mod.default ?? mod[skill])) as any;
-                    }
-                    
-                    if (typeof Ctor === 'function') {
-                      try {
-                        const instance = new Ctor({ ...(this.config?.skillsConfig?.[skill] || {}), name: skill });
-                        this.registerSkill(instance);
-                      } catch (e) {
-                        logger.error('Failed to register skill from config', e);
-                      }
-                    }
-                  } catch (e) {
-                    logger.warn(`Failed to load skill module for ${skill}`, e);
-                  }
+                  const instance = await BaseSkill.require(skill, { name: skill });
+                  if (instance) this.registerSkill(instance);
                 })();
+
+                // perform dynamic import asynchronously and register when ready
+                // (async () => {
+                //   try {
+                //     // Try to load from skills/index.ts first
+                //     const skillsIndex: any = await import(/* webpackIgnore: true */ `../skills`);
+                //     let Ctor = skillsIndex[skill];
+                    
+                //     // If not found in index, try loading from individual skill file
+                //     if (!Ctor) {
+                //       const mod = await import(/* webpackIgnore: true */ `../skills/${skill}`);
+                //       Ctor = (mod && (mod.default ?? mod[skill])) as any;
+                //     }
+                    
+                //     if (typeof Ctor === 'function') {
+                //       try {
+                //         const instance = new Ctor({ ...(this.config?.skillsConfig?.[skill] || {}), name: skill });
+                //         this.registerSkill(instance);
+                //       } catch (e) {
+                //         logger.error('Failed to register skill from config', e);
+                //       }
+                //     }
+                //   } catch (e) {
+                //     logger.warn(`Failed to load skill module for ${skill}`, e);
+                //   }
+                // })();
               }
               // if (inst) this.registerSkill(inst);
             } catch (e) {

@@ -167,7 +167,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
               // Run each matched skill and yield its result as a system message before the main model response
               try {
                 const skillCtx: SkillContext = { agentId: this.id, model: this.model };
-                const skillResult = await (this as unknown as BaseAgent).runSkill(input, skillCtx);
+                const skillResult = await skill.run(input, skillCtx);
                 if (skillResult !== undefined) {
                   const content = typeof skillResult === 'string' ? skillResult : JSON.stringify(skillResult, null, 2);
                   await this.emitMessage({ role: 'supplementary' as const, content: String(content), ts: Date.now(), type: 'end' });

@@ -9,6 +9,7 @@ export class MemoriesKeepSkill extends BaseSkill {
     super({
       name: opts.name ?? 'MemoriesKeepSkill',
       description: opts.description ?? 'Stores and appends memories to daily markdown files',
+      paramaterSchema: '{ input: string }',
       tags: opts.tags ?? ['memories', 'store', 'keep', 'save memory']
     });
 

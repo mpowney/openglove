@@ -1,5 +1,8 @@
 { 
   "SearxngWebSearchSkill": {
+    "runner": {
+      "type": "RinseAndRepeatRunner"
+    },
     "baseUrl": "{SECRET:searxng-instance-url}",
     "timeout": 8000,
     "resultCount": 3,
@@ -13,5 +16,11 @@
   },
   "MemoriesKeepSkill": {
     "memoriesPath": "memories"
+  },
+  "WebBrowserSkill": {
+    "runner": {
+      "type": "RinseAndRepeatRunner",
+      "opts": { "maxRetries": 3 }
+    }
   }
 }

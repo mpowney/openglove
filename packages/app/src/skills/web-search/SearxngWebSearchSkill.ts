@@ -2,7 +2,12 @@ import { BaseWebSearchSkill, BaseWebSearchOptions } from './BaseWebSearchSkill';
 
 export class SearxngWebSearchSkill extends BaseWebSearchSkill {
   constructor(opts: BaseWebSearchOptions & { id?: string; name?: string; description?: string; tags?: string[] }) {
-    super({ ...opts, name: opts.name ?? 'SearxngWebSearchSkill' });
+    super({ 
+      ...opts, 
+      name: opts.name ?? 'SearxngWebSearchSkill',
+      description: opts.description ?? 'Searches the web using the Searxng search engine API',
+      tags: opts.tags ?? ['web-search', 'searxng'], 
+    });
   }
 
   async canHandle(input: string): Promise<boolean> {

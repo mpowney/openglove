@@ -6,10 +6,11 @@ import { Logger } from './Logger';
 import { loadSecrets, replaceSecrets } from './Secrets';
 const logger = new Logger('Config');
 
-export function loadConfig(path: string, secretsDir?: string): ConfigMap {
+export function loadConfig(path: string): ConfigMap {
   if (!path) return null;
   if (Object.prototype.hasOwnProperty.call(cache, path)) return cache[path];
   try {
+    const secretsDir = `${process.cwd()}/secrets`;
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs');
     const pathModule = require('path');

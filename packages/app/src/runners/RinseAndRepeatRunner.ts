@@ -1,4 +1,4 @@
-import { BaseSkill, BaseSkillRunner, Logger, SkillContext } from '@openglove/base';
+import { BaseSkill, BaseSkillRunner, loadConfig, Logger, SkillContext } from '@openglove/base';
 import { BaseModel } from '../models/BaseModel';
 
 const logger = new Logger('RinseAndRepeatRunner');
@@ -11,9 +11,9 @@ export class RinseAndRepeatRunner extends BaseSkillRunner {
   private model: BaseModel | null = null;
   private modelConfig: any = null;
 
-  constructor(configDir: string = process.cwd()) {
+  constructor(opts: any) {
     super();
-    this.configDir = configDir;
+    this.configDir = process.cwd(); // Set config directory to current working directory to find skillRunner.json
     // Set the models path relative to app package
     this.modelsPath = '../models';
   }
@@ -24,6 +24,7 @@ export class RinseAndRepeatRunner extends BaseSkillRunner {
       const skillInfo = await skill.getInfo();
       const skillName = skillInfo.name || 'unknown';
       const skillDescription = skillInfo.description || 'No description available';
+      const skillParamSchema = skillInfo.paramaterSchema || '{}';
 
       // Load configuration
       const skillRunnerConfig = this.loadSkillRunnerConfig();
@@ -52,11 +53,11 @@ export class RinseAndRepeatRunner extends BaseSkillRunner {
       modelInput = modelInput.replace('{input}', inputStr);
       modelInput = modelInput.replace('{skill-name}', skillName);
       modelInput = modelInput.replace('{skill-description}', skillDescription);
-      modelInput = modelInput.replace('{skill-parameters-schema}', '{ "type": "object", "properties": { "query": { "type": "string", "description": "The search query or URL to retrieve" } }, "required": ["query"] }');
+      modelInput = modelInput.replace('{skill-parameters-schema}', skillParamSchema);
       
       // Instantiate the model
-      this.model = await this.instantiateModel(modelName, this.modelConfig);
-      this.model?.predict(modelInput);
+      this.model = await BaseModel.require(modelName, this.modelConfig);
+      const result = await this.model?.predict(modelInput);
 
       logger.log(`Initialized model: ${modelName}`);
     } catch (err) {
@@ -69,7 +70,7 @@ export class RinseAndRepeatRunner extends BaseSkillRunner {
    * Load models.json configuration
    */
   private loadModelsConfig(): any {
-    return this.loadConfig('models.json');
+    return loadConfig('models.json');
   }
 
   /**

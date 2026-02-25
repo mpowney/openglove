@@ -29,8 +29,14 @@ export abstract class BaseWebSearchSkill extends BaseSkill {
   protected params: Record<string, string>;
   protected resultCount: number;
 
-  constructor(opts: BaseWebSearchOptions & { id?: string; name?: string; description?: string; tags?: string[] }) {
-    super({ id: opts.id, name: opts.name, description: opts.description, tags: opts.tags });
+  constructor(opts: BaseWebSearchOptions & { id?: string; name?: string; description?: string; paramaterSchema?: string; tags?: string[] }) {
+    super({
+      id: opts.id,
+      name: opts.name,
+      description: opts.description,
+      paramaterSchema: '{ input: string }',
+      tags: opts.tags
+    });
     const cfg = (this as any).config as Record<string, any> | undefined;
     const baseUrl = (opts as any).baseUrl ?? cfg?.baseUrl;
     if (!baseUrl) throw new Error('BaseWebSearchSkill requires a baseUrl option or config entry');

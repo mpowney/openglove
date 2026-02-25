@@ -24,7 +24,8 @@ export class WebBrowserSkill extends BaseSkill {
     super({ 
       name: opts.name ?? 'WebBrowserSkill', 
       description: opts.description ?? 'Handles web browser related tasks', 
-      tags: opts.tags ?? ['web-browser'] 
+      tags: opts.tags ?? ['web-browser'],
+      paramaterSchema: '{ url: string, actions?: { click?: string; fill?: Record<string, string> }[] }'
     });
   }
 
@@ -33,7 +34,7 @@ export class WebBrowserSkill extends BaseSkill {
     return /\b(browse a web page|browse to|open site|open a web page)\b/.test(s);
   }
 
-  async run(_input: any, _ctx?: SkillContext) {
+  async runSkill(_input: any, _ctx?: SkillContext) {
     let config: WebBrowserSkillInput;
     
     // Accept input as object or string

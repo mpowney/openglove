@@ -11,7 +11,7 @@ logger.subscribe(Logger.ConsoleSubscriber());
 
 async function main() {
   const server = new SocketServer('WebBrowserSkill');
-  const skill = new WebBrowserSkill();
+  let skill = new WebBrowserSkill();
 
   // Register the "run" method
   server.registerMethod('canHandle', async (params: any) => {
@@ -23,7 +23,7 @@ async function main() {
     return await skill.getInfo();
   });
 
-  server.registerMethod('run', async (params: any) => {
+  server.registerMethod('runSkill', async (params: any) => {
     let input: any;
     let ctx: any;
 
@@ -35,7 +35,10 @@ async function main() {
       input = params;
     }
 
-    return await skill.run(input, ctx);
+    const result = await skill.run(input, ctx);
+    logger.log('runSkill result:', result);
+
+    return result;
   });
 
   try {
