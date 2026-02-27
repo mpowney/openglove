@@ -128,9 +128,10 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
    */
   async *sendStream(input: string): AsyncIterable<Message> {
     // Route input through the pipeline before further processing
-    const pipelineInput: InputHandlerInput = { text: input, ts: Date.now() };
+    const receivedAt = new Date();
+    const pipelineInput: InputHandlerInput = { text: input, timestamp: receivedAt.toISOString() };
     const pipelineOutput = await this.pipeline.run(pipelineInput);
-    const userMessage: Message = { role: 'user', content: pipelineOutput, ts: Date.now(), type: 'end' }
+    const userMessage: Message = { role: 'user', content: pipelineOutput, ts: receivedAt.getTime(), type: 'end' }
     this.emitMessage(userMessage).catch(() => {});
     logger.verbose('User input received', { input: pipelineOutput });
 

@@ -5,12 +5,19 @@ export class DefaultInputHandler extends BaseInputHandler {
   async handle(input: InputHandlerInput): Promise<InputHandlerOutput> {
     const text = (input.text ?? '').trim();
 
+    // Parse the ISO-8601 timestamp supplied by the caller, fall back to now.
+    const ts = input.timestamp ? Date.parse(input.timestamp) : Date.now();
+
+    // Carry caller tags forward as generic metadata.
+    const metadata: Record<string, any> | undefined = input.clientTags
+      ? { ...input.clientTags }
+      : undefined;
+
     return {
-      id: input.id,
       text,
       role: 'user',
-      metadata: input.metadata,
-      ts: input.ts ?? Date.now(),
+      metadata,
+      ts: isNaN(ts) ? Date.now() : ts,
     };
   }
 }
