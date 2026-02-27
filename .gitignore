@@ -4,3 +4,4 @@ dist
 logs
 memories
 secrets
+*.tsbuildinfo

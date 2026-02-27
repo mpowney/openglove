@@ -1,1 +1,0 @@
-{"root":["./src/index.ts","./src/runners/BaseSkillRunner.ts","./src/skills/BaseSkill.ts","./src/utils/Config.ts","./src/utils/Logger.ts","./src/utils/Secrets.ts","./src/utils/SocketServer.ts"],"errors":true,"version":"5.9.3"}
