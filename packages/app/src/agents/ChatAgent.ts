@@ -2,12 +2,14 @@ import { BaseAgent } from './BaseAgent';
 import { BaseModel, Message } from '../models/BaseModel';
 import { SkillContext, Logger } from '@openglove/base';
 import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
+import { CustomPipeline } from '../pipeline/CustomPipeline';
 
 const logger = new Logger('ChatAgent');
 
 export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
 
   history: Message[] = [];
+  pipeline: CustomPipeline = new CustomPipeline();
   skillsModel?: BaseModel; // Optional separate model for determining what skills to use, if not set the main model will be used
   skillsPromptTemplate?: string = "You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of skills to those relevant to the user's input. Be succinct, and don't list irrelevant skills. User Input: {prompt}.\n\nSkills: {skills-list}"; // Optional template for the prompt to determine skills, can be set in config
 
@@ -124,15 +126,17 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
    * should also send the final response to all channels when complete.
    */
   async *sendStream(input: string): AsyncIterable<Message> {
-    const userMessage: Message = { role: 'user', content: input, ts: Date.now(), type: 'end' }
+    // Route input through the pipeline before further processing
+    const pipelineOutput = await this.pipeline.run(input);
+    const userMessage: Message = { role: 'user', content: pipelineOutput, ts: Date.now(), type: 'end' }
     this.emitMessage(userMessage).catch(() => {});
-    logger.verbose('User input received', { input });
+    logger.verbose('User input received', { input: pipelineOutput });
 
     // Use the skillsModel to determine what skills can handle this input
     const skillsModel = this.skillsModel || this.model;
     if (skillsModel) {
       const skillsInfo = await Promise.all(this.skills.map(s => s.getInfo().catch(() => ({ name: s.name || 'Unknown', description: undefined, tags: [] }))));
-      const skillsPrompt = this.skillsPromptTemplate?.replace('{prompt}', input).replace('{skills-list}', skillsInfo.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n'));
+      const skillsPrompt = this.skillsPromptTemplate?.replace('{prompt}', pipelineOutput).replace('{skills-list}', skillsInfo.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n'));
       if (!skillsPrompt) {
         logger.warn('No skills prompt template defined, skipping skills model step');
       } else {
@@ -167,7 +171,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
               // Run each matched skill and yield its result as a system message before the main model response
               try {
                 const skillCtx: SkillContext = { agentId: this.id, model: this.model };
-                const skillResult = await skill.run(input, skillCtx);
+                const skillResult = await skill.run(pipelineOutput, skillCtx);
                 if (skillResult !== undefined) {
                   const content = typeof skillResult === 'string' ? skillResult : JSON.stringify(skillResult, null, 2);
                   await this.emitMessage({ role: 'supplementary' as const, content: String(content), ts: Date.now(), type: 'end' });
