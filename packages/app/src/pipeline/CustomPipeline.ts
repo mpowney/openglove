@@ -1,25 +1,25 @@
-import { Pipeline } from './Pipeline';
-import { InputHandler, DefaultInputHandler } from './InputHandler';
-import { Processor, DefaultProcessor } from './Processor';
-import { ActionHandler, DefaultActionHandler } from './ActionHandler';
-import { OutputHandler, DefaultOutputHandler } from './OutputHandler';
+import { BasePipeline } from './Pipeline';
+import { BaseInputHandler, DefaultInputHandler } from './InputHandler';
+import { BaseProcessor, DefaultProcessor } from './Processor';
+import { BaseActionHandler, DefaultActionHandler } from './ActionHandler';
+import { BaseOutputHandler, DefaultOutputHandler } from './OutputHandler';
 
 /**
  * Concrete example pipeline that wires together the default pass-through
  * handlers for each stage.  Extend or replace individual handlers to
  * customize behaviour.
  */
-export class CustomPipeline extends Pipeline {
-  protected inputHandler: InputHandler;
-  protected processor: Processor;
-  protected actionHandler: ActionHandler;
-  protected outputHandler: OutputHandler;
+export class CustomPipeline extends BasePipeline {
+  protected inputHandler: BaseInputHandler;
+  protected processor: BaseProcessor;
+  protected actionHandler: BaseActionHandler;
+  protected outputHandler: BaseOutputHandler;
 
   constructor(opts: {
-    inputHandler?: InputHandler;
-    processor?: Processor;
-    actionHandler?: ActionHandler;
-    outputHandler?: OutputHandler;
+    inputHandler?: BaseInputHandler;
+    processor?: BaseProcessor;
+    actionHandler?: BaseActionHandler;
+    outputHandler?: BaseOutputHandler;
   } = {}) {
     super();
     this.inputHandler = opts.inputHandler ?? new DefaultInputHandler();
