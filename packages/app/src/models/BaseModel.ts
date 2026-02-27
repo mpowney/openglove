@@ -12,6 +12,8 @@ export interface Chunk {
 }
 
 export interface Message extends Chunk {
+  /** Immutable UUID identifier for this message. */
+  id?: string;
   ts?: number;
 }
 

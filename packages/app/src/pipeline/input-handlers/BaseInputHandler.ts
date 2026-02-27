@@ -1,3 +1,5 @@
+import { Message } from '../../models/BaseModel';
+
 /**
  * Structured input to the pipeline's input-handling stage.
  * Represents all information a caller may supply alongside the user's message.
@@ -36,11 +38,7 @@ export interface InputHandlerInput {
   /** Identifier of the message this is a reply to. */
   parentMessageId?: string;
   /** Preceding messages for in-context continuations. */
-  previousMessages?: Array<{
-    role: 'user' | 'assistant' | 'system';
-    text: string;
-    timestamp?: string;
-  }>;
+  previousMessages?: Message[];
 
   // ── Tooling / routing hints ────────────────────────────────────────────────
   /** Opaque routing hint for the pipeline (e.g. `'needs-tool'`, `'priority'`). */
