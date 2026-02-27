@@ -80,17 +80,16 @@ export interface InputHandlerInput {
 /**
  * Structured output produced by the input-handling stage.
  * Represents a normalised, validated message ready for downstream stages.
+ * Extends Message so it can be used wherever a Message is expected.
  */
-export interface InputHandlerOutput {
+export interface InputHandlerOutput extends Message {
   /** Normalised text to be forwarded through the pipeline. */
   text: string;
-  /** Echoed or generated identifier for this message. */
-  id?: string;
-  /** Role assigned to the message (defaults to 'user'). */
+  /** Role assigned to the message (required; defaults to 'user'). */
   role: 'user' | 'system' | 'assistant' | 'supplementary';
   /** Metadata carried over or enriched from the input. */
   metadata?: Record<string, any>;
-  /** Guaranteed timestamp (falls back to Date.now()). */
+  /** Guaranteed epoch-ms timestamp (falls back to Date.now()). */
   ts: number;
 }
 

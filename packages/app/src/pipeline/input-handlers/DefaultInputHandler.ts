@@ -23,6 +23,7 @@ export class DefaultInputHandler extends BaseInputHandler {
 
     return {
       id: generateUUID(),
+      type: 'full',
       text,
       role: 'user',
       metadata,
