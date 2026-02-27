@@ -1,6 +1,6 @@
 import { BasePipeline } from './Pipeline';
 import { BaseInputHandler, DefaultInputHandler } from './InputHandler';
-import { BaseProcessor, DefaultProcessor } from './Processor';
+import { BaseContextManager, DefaultContextManager } from './context-managers';
 import { BaseActionHandler, DefaultActionHandler } from './ActionHandler';
 import { BaseOutputHandler, DefaultOutputHandler } from './OutputHandler';
 
@@ -11,19 +11,19 @@ import { BaseOutputHandler, DefaultOutputHandler } from './OutputHandler';
  */
 export class CustomPipeline extends BasePipeline {
   protected inputHandler: BaseInputHandler;
-  protected processor: BaseProcessor;
+  protected contextManager: BaseContextManager;
   protected actionHandler: BaseActionHandler;
   protected outputHandler: BaseOutputHandler;
 
   constructor(opts: {
     inputHandler?: BaseInputHandler;
-    processor?: BaseProcessor;
+    contextManager?: BaseContextManager;
     actionHandler?: BaseActionHandler;
     outputHandler?: BaseOutputHandler;
   } = {}) {
     super();
     this.inputHandler = opts.inputHandler ?? new DefaultInputHandler();
-    this.processor = opts.processor ?? new DefaultProcessor();
+    this.contextManager = opts.contextManager ?? new DefaultContextManager();
     this.actionHandler = opts.actionHandler ?? new DefaultActionHandler();
     this.outputHandler = opts.outputHandler ?? new DefaultOutputHandler();
   }
