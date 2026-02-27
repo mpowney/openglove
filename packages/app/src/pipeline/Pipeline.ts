@@ -1,4 +1,4 @@
-import { BaseInputHandler } from './InputHandler';
+import { BaseInputHandler, InputHandlerInput } from './input-handlers';
 import { BaseContextManager } from './context-managers';
 import { BaseActionHandler } from './ActionHandler';
 import { BaseOutputHandler } from './OutputHandler';
@@ -15,14 +15,14 @@ export abstract class BasePipeline {
 
   /**
    * Run input through all four pipeline stages sequentially:
-   * 1. Ingestion        (BaseInputHandler)
-   * 2. Context Mgmt     (BaseContextManager)
-   * 3. Execution        (BaseActionHandler)
-   * 4. Output           (BaseOutputHandler)
+   * 1. Ingestion        (BaseInputHandler)   — structured InputHandlerInput → InputHandlerOutput
+   * 2. Context Mgmt     (BaseContextManager) — enriches/transforms the text
+   * 3. Execution        (BaseActionHandler)  — executes any actions
+   * 4. Output           (BaseOutputHandler)  — formats the final result
    */
-  async run(input: string): Promise<string> {
+  async run(input: InputHandlerInput): Promise<string> {
     const ingested = await this.inputHandler.handle(input);
-    const managed = await this.contextManager.manage(ingested);
+    const managed = await this.contextManager.manage(ingested.text);
     const executed = await this.actionHandler.execute(managed);
     const result = await this.outputHandler.output(executed);
     return result;

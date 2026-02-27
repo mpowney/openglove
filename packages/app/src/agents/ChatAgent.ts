@@ -3,6 +3,7 @@ import { BaseModel, Message } from '../models/BaseModel';
 import { SkillContext, Logger } from '@openglove/base';
 import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
 import { CustomPipeline } from '../pipeline/CustomPipeline';
+import { InputHandlerInput } from '../pipeline/input-handlers';
 
 const logger = new Logger('ChatAgent');
 
@@ -127,7 +128,8 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
    */
   async *sendStream(input: string): AsyncIterable<Message> {
     // Route input through the pipeline before further processing
-    const pipelineOutput = await this.pipeline.run(input);
+    const pipelineInput: InputHandlerInput = { text: input, ts: Date.now() };
+    const pipelineOutput = await this.pipeline.run(pipelineInput);
     const userMessage: Message = { role: 'user', content: pipelineOutput, ts: Date.now(), type: 'end' }
     this.emitMessage(userMessage).catch(() => {});
     logger.verbose('User input received', { input: pipelineOutput });

@@ -1,5 +1,5 @@
 import { BasePipeline } from './Pipeline';
-import { BaseInputHandler, DefaultInputHandler } from './InputHandler';
+import { BaseInputHandler, DefaultInputHandler } from './input-handlers';
 import { BaseContextManager, DefaultContextManager } from './context-managers';
 import { BaseActionHandler, DefaultActionHandler } from './ActionHandler';
 import { BaseOutputHandler, DefaultOutputHandler } from './OutputHandler';
