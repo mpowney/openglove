@@ -89,7 +89,7 @@ export interface InputHandlerInput extends Message, InputHandlerContext {
  */
 export interface DetectedEntity {
   /** Type of entity (e.g., 'person', 'organisation', 'location', 'email', etc.). */
-  type: 'person' | 'organisation' | 'location' | 'email' | string;
+  type: 'person' | 'organisation' | 'location' | 'email' | 'web_address' | string;
   /** Start and end indices in the original text. */
   span: { start: number; end: number };
   /** Normalised or canonical form of the entity. */

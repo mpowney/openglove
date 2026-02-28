@@ -1,12 +1,5 @@
 import { BaseInputHandler, InputHandlerInput, InputHandlerOutput } from './BaseInputHandler';
-
-/** Generates a RFC 4122 UUID v4 without requiring external dependencies. */
-function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0;
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-  });
-}
+import { generateUUID } from '../../utils/UUID';
 
 /** Default InputHandler: normalises and validates the incoming message. */
 export class DefaultInputHandler extends BaseInputHandler {
@@ -27,7 +20,7 @@ export class DefaultInputHandler extends BaseInputHandler {
     };
 
     return {
-      id: generateUUID(),
+      id: input.id || generateUUID(),
       type: 'full',
       originalText,
       cleanText,
