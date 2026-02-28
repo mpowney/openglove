@@ -1,6 +1,5 @@
-import { BaseModel } from './BaseModel';
+import { BaseModel, Chunk } from './BaseModel';
 import { Logger } from '@openglove/base';
-import { Chunk } from './BaseModel';
 
 const logger = new Logger('OllamaModel');
 

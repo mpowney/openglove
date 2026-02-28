@@ -11,23 +11,36 @@ function generateUUID(): string {
 /** Default InputHandler: normalises and validates the incoming message. */
 export class DefaultInputHandler extends BaseInputHandler {
   async handle(input: InputHandlerInput): Promise<InputHandlerOutput> {
-    const text = (input.text ?? '').trim();
-
-    // Parse the ISO-8601 timestamp supplied by the caller, fall back to now.
-    const ts = input.timestamp ? Date.parse(input.timestamp) : Date.now();
+    const originalText = input.text ?? '';
+    const cleanText = originalText.trim();
 
     // Carry caller tags forward as generic metadata.
     const metadata: Record<string, any> | undefined = input.clientTags
       ? { ...input.clientTags }
       : undefined;
 
+    // Calculate text lengths
+    const lengths = {
+      chars: cleanText.length,
+      words: cleanText.split(/\s+/).filter(w => w.length > 0).length,
+      tokens: 0, // Would be populated by tokenization downstream if needed
+    };
+
     return {
       id: generateUUID(),
       type: 'full',
-      text,
-      role: 'user',
+      originalText,
+      cleanText,
+      role: input.role,
+      language: input.languageHint || 'en',
+      ts: Date.now(),
+      clientLocale: input.clientLocale,
+      clientPlatform: input.clientPlatform,
+      source: input.source,
+      sessionId: input.sessionId,
+      routingHint: input.routingHint,
+      lengths,
       metadata,
-      ts: isNaN(ts) ? Date.now() : ts,
     };
   }
 }
