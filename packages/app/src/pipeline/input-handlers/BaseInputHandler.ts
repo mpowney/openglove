@@ -1,5 +1,6 @@
 import { ChannelRoleType } from '../../channels/BaseChannel';
-import { Message } from '../../models/BaseModel';
+import { BaseModel, Message } from '../../models/BaseModel';
+import { PromptTemplate } from '../../prompts';
 
 /**
  * Shared metadata context for input and output.
@@ -219,6 +220,12 @@ export interface InputHandlerOutput extends Message, InputHandlerContext {
   metadata?: Record<string, any>;
 }
 
+export interface InputHandlerOptions {
+  model?: BaseModel;
+  promptTemplate?: PromptTemplate;
+  emitMessage?: (message: Message) => Promise<void>;
+}
+
 /**
  * Abstract base class for pipeline input ingestion.
  * Responsible for receiving, validating, and normalising raw input
@@ -226,4 +233,18 @@ export interface InputHandlerOutput extends Message, InputHandlerContext {
  */
 export abstract class BaseInputHandler {
   abstract handle(input: InputHandlerInput): Promise<InputHandlerOutput>;
+  Model: BaseModel | null = null;
+  PromptTemplate?: PromptTemplate | null = null;
+  emitMessage?: (message: Message) => Promise<void>;
+  constructor(opts: InputHandlerOptions = {}) {
+    if (opts.model) {
+      this.Model = opts.model;
+    }
+    if (opts.promptTemplate) {
+      this.PromptTemplate = opts.promptTemplate;
+    }
+    if (opts.emitMessage) {
+      this.emitMessage = opts.emitMessage;
+    }
+  }
 }

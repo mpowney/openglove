@@ -1,4 +1,4 @@
-import { BasePipeline } from './Pipeline';
+import { BasePipeline, PipelineOptions } from './BasePipeline';
 import { BaseInputHandler, DefaultInputHandler } from './input-handlers';
 import { BaseContextManager, DefaultContextManager } from './context-managers';
 import { BaseActionHandler, DefaultActionHandler } from './ActionHandler';
@@ -9,18 +9,13 @@ import { BaseOutputHandler, DefaultOutputHandler } from './OutputHandler';
  * handlers for each stage.  Extend or replace individual handlers to
  * customize behaviour.
  */
-export class CustomPipeline extends BasePipeline {
+export class DefaultPipeline extends BasePipeline {
   protected inputHandler: BaseInputHandler;
   protected contextManager: BaseContextManager;
   protected actionHandler: BaseActionHandler;
   protected outputHandler: BaseOutputHandler;
 
-  constructor(opts: {
-    inputHandler?: BaseInputHandler;
-    contextManager?: BaseContextManager;
-    actionHandler?: BaseActionHandler;
-    outputHandler?: BaseOutputHandler;
-  } = {}) {
+  constructor(opts: PipelineOptions = {}) {
     super();
     this.inputHandler = opts.inputHandler ?? new DefaultInputHandler();
     this.contextManager = opts.contextManager ?? new DefaultContextManager();

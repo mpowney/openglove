@@ -2,7 +2,7 @@ import { BaseAgent } from './BaseAgent';
 import { BaseModel, Message } from '../models/BaseModel';
 import { SkillContext, Logger } from '@openglove/base';
 import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
-import { CustomPipeline } from '../pipeline/CustomPipeline';
+import { DefaultPipeline } from '../pipeline/DefaultPipeline';
 import { InputHandlerInput } from '../pipeline/input-handlers';
 
 const logger = new Logger('ChatAgent');
@@ -10,7 +10,7 @@ const logger = new Logger('ChatAgent');
 export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
 
   history: Message[] = [];
-  pipeline: CustomPipeline = new CustomPipeline();
+  pipeline: DefaultPipeline = new DefaultPipeline({ emitMessage: this.emitMessage.bind(this) });
   skillsModel?: BaseModel; // Optional separate model for determining what skills to use, if not set the main model will be used
   skillsPromptTemplate?: string = "You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of skills to those relevant to the user's input. Be succinct, and don't list irrelevant skills. User Input: {prompt}.\n\nSkills: {skills-list}"; // Optional template for the prompt to determine skills, can be set in config
 
@@ -80,11 +80,19 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
 
   /** Emit a message to history and send it to all subscribed channels */
   private async emitMessage(message: Message): Promise<void> {
+    
+    const { content, role, ts, type } = message;
+    // Don't emit empty messages
+    if (!content || content.trim().length === 0) {
+      return;
+    }
+
     this.history.push(message);
     for (const ch of this.channels) {
       try {
         ch.sendResponse(message).catch(() => {});
-      } catch {
+      } catch (err) {
+        logger.warn('Failed to send message to channel', { channelId: ch.id, error: err instanceof Error ? err.message : String(err) });
         // ignore per-channel errors
       }
     }
@@ -129,7 +137,7 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
   async *sendStream(input: string): AsyncIterable<Message> {
     // Route input through the pipeline before further processing
     const receivedAt = new Date();
-    const pipelineInput: InputHandlerInput = { text: input, timestamp: receivedAt.toISOString() };
+    const pipelineInput: InputHandlerInput = { text: input, ts: receivedAt.getTime(), type: 'text' };
     const pipelineOutput = await this.pipeline.run(pipelineInput);
     const userMessage: Message = { role: 'user', content: pipelineOutput, ts: receivedAt.getTime(), type: 'end' }
     this.emitMessage(userMessage).catch(() => {});
