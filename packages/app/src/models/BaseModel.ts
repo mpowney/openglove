@@ -12,7 +12,10 @@ export interface Chunk {
 }
 
 export interface Message extends Chunk {
-  ts?: number;
+  /** Immutable UUID identifier for this message. */
+  id?: string;
+  /** Guaranteed epoch-ms timestamp (falls back to Date.now()). */
+  ts: number;
 }
 
 const logger = new Logger('BaseModel');
