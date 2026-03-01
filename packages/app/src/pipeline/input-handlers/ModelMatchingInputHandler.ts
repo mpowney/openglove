@@ -19,14 +19,14 @@ import { generateUUID } from '../../utils/UUID';
  */
 export class ModelMatchingInputHandler extends BaseInputHandler {
   
-  constructor(opts: InputHandlerOptions) {
+  constructor(opts?: InputHandlerOptions) {
     super(opts);
     
-    if (!this.Model) {
+    if (!this.opts?.model) {
       throw new Error('ModelMatchingInputHandler requires a model to be specified');
     }
     
-    if (!this.PromptTemplate) {
+    if (!this.opts?.promptTemplate) {
       throw new Error('ModelMatchingInputHandler requires a prompt template to be specified');
     }
   }
@@ -36,28 +36,28 @@ export class ModelMatchingInputHandler extends BaseInputHandler {
     const normalisationLog = [];
 
     // Ensure model and template are available (should always be true due to constructor check)
-    if (!this.Model || !this.PromptTemplate) {
+    if (!this.opts?.model || !this.opts?.promptTemplate) {
       throw new Error('Model or PromptTemplate not initialized');
     }
 
     // Set the input-text placeholder in the prompt template
-    this.PromptTemplate.setPlaceholders({
+    this.opts.promptTemplate.setPlaceholders({
       'input-text': rawText
     });
 
     // Render the prompt with the placeholder replaced
-    const prompt = await this.PromptTemplate.render();
+    const prompt = await this.opts.promptTemplate.render();
 
     // Use the model to perform prediction
     const startTime = Date.now();
-    const modelResponse = await this.Model.predict(prompt);
+    const modelResponse = await this.opts.model.predict(prompt);
     const predictionTime = Date.now() - startTime;
 
     normalisationLog.push({
       name: 'model_based_pattern_matching',
       params: {
-        model_id: this.Model.id,
-        model_name: this.Model.name || 'unknown',
+        model_id: this.opts.model.id,
+        model_name: this.opts.model.name || 'unknown',
         prediction_time_ms: predictionTime,
         prompt_length: prompt.length,
         input_length: rawText.length

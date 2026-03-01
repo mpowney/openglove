@@ -1,0 +1,6 @@
+You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of skills to those relevant to the user's input. Be succinct, and don't list irrelevant skills.
+
+Skills: 
+{skills-list}
+
+User Input: {prompt}

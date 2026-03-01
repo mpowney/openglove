@@ -233,18 +233,8 @@ export interface InputHandlerOptions {
  */
 export abstract class BaseInputHandler {
   abstract handle(input: InputHandlerInput): Promise<InputHandlerOutput>;
-  Model: BaseModel | null = null;
-  PromptTemplate?: PromptTemplate | null = null;
-  emitMessage?: (message: Message) => Promise<void>;
+  opts?: InputHandlerOptions;
   constructor(opts: InputHandlerOptions = {}) {
-    if (opts.model) {
-      this.Model = opts.model;
-    }
-    if (opts.promptTemplate) {
-      this.PromptTemplate = opts.promptTemplate;
-    }
-    if (opts.emitMessage) {
-      this.emitMessage = opts.emitMessage;
-    }
+    this.opts = opts;
   }
 }

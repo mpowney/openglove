@@ -4,6 +4,7 @@ import { SkillContext, Logger } from '@openglove/base';
 import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
 import { DefaultPipeline } from '../pipeline/DefaultPipeline';
 import { InputHandlerInput } from '../pipeline/input-handlers';
+import { PromptTemplate } from '../prompts';
 
 const logger = new Logger('ChatAgent');
 
@@ -146,8 +147,13 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
     // Use the skillsModel to determine what skills can handle this input
     const skillsModel = this.skillsModel || this.model;
     if (skillsModel) {
-      const skillsInfo = await Promise.all(this.skills.map(s => s.getInfo().catch(() => ({ name: s.name || 'Unknown', description: undefined, tags: [] }))));
-      const skillsPrompt = this.skillsPromptTemplate?.replace('{prompt}', pipelineOutput).replace('{skills-list}', skillsInfo.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n'));
+      const promptTemplate = new PromptTemplate('find-skills.txt');
+      promptTemplate.setPlaceholders({ 'prompt': pipelineOutput || input });
+      promptTemplate.setPlaceholders({ 'skills-list': this.skills.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n') });
+
+      const skillsPrompt = await promptTemplate.render();
+      // const skillsInfo = await Promise.all(this.skills.map(s => s.getInfo().catch(() => ({ name: s.name || 'Unknown', description: undefined, tags: [] }))));
+      // const skillsPrompt = this.skillsPromptTemplate?.replace('{prompt}', pipelineOutput).replace('{skills-list}', skillsInfo.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n'));
       if (!skillsPrompt) {
         logger.warn('No skills prompt template defined, skipping skills model step');
       } else {
