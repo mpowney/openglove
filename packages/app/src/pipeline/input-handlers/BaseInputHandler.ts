@@ -90,7 +90,7 @@ export interface InputHandlerInput extends Message, InputHandlerContext {
  */
 export interface DetectedEntity {
   /** Type of entity (e.g., 'person', 'organisation', 'location', 'email', etc.). */
-  type: 'person' | 'organisation' | 'location' | 'email' | 'web_address' | string;
+  type: 'person' | 'organisation' | 'location' | 'email' | 'hostname' | string;
   /** Start and end indices in the original text. */
   span: { start: number; end: number };
   /** Normalised or canonical form of the entity. */
@@ -131,7 +131,7 @@ export interface SensitiveFlag {
  */
 export interface Mention {
   /** Type of mention (e.g., 'url', 'email', 'phone', 'handle'). */
-  type: string;
+  type: 'url' | 'email' | 'phone' | 'handle' | string;
   /** Detected mention text. */
   value: string;
   /** Whether this mention should be anonymized. */

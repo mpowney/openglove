@@ -8,3 +8,4 @@ export { CanonicalFormatInputHandler } from './CanonicalFormatInputHandler';
 export { SpacingPunctuationInputHandler } from './SpacingPunctuationInputHandler';
 export { PatternDetectionInputHandler } from './PatternDetectionInputHandler';
 export { ModelMatchingInputHandler } from './ModelMatchingInputHandler';
+export { HostnameDetectionInputHandler } from './HostnameDetectionInputHandler';

@@ -9,6 +9,7 @@ import { SpacingPunctuationInputHandler } from './SpacingPunctuationInputHandler
 import { PatternDetectionInputHandler } from './PatternDetectionInputHandler';
 import { ModelMatchingInputHandler } from './ModelMatchingInputHandler';
 import { Logger } from '@openglove/base';
+import { HostnameDetectionInputHandler } from './HostnameDetectionInputHandler';
 
 const logger = new Logger('DefaultInputHandler');
 
@@ -21,11 +22,12 @@ export class DefaultInputHandler extends BaseInputHandler {
 
       let handlers = [
         new UnicodeNfcInputHandler(this.opts),
+        new HostnameDetectionInputHandler(this.opts),
+        new PatternDetectionInputHandler(this.opts),
         new LowercaseInputHandler(this.opts),
         new ControlCharacterStripInputHandler(this.opts),
         new CanonicalFormatInputHandler(this.opts),
         new SpacingPunctuationInputHandler(this.opts),
-        new PatternDetectionInputHandler(this.opts),
         new WhitespaceNormalisationInputHandler(this.opts),
       ]
 
@@ -65,6 +67,14 @@ export class DefaultInputHandler extends BaseInputHandler {
             ...(workingOutput?.normalisationLog || []),
             ...(output.normalisationLog || []),
           ],
+          mentions: [
+            ...(workingOutput?.mentions || []),
+            ...(output.mentions || []),
+          ],
+          entities: [
+            ...(workingOutput?.entities || []),
+            ...(output.entities || []),
+          ],
           ts: output.ts || Date.now(),
         };
 
@@ -90,22 +100,11 @@ export class DefaultInputHandler extends BaseInputHandler {
         tokens: 0, // Would be populated by tokenization downstream if needed
       };
 
-      return workingOutput || {
-        id: input.id || generateUUID(),
-        type: 'full',
-        originalText,
-        cleanText,
-        role: input.role,
-        language: input.languageHint || 'en',
-        ts: Date.now(),
-        clientLocale: input.clientLocale,
-        clientPlatform: input.clientPlatform,
-        source: input.source,
-        sessionId: input.sessionId,
-        routingHint: input.routingHint,
-        lengths,
-        metadata,
-      };
+      return { 
+        ...workingOutput, 
+        originalText 
+      } as InputHandlerOutput;
+
     } catch (error) {
       logger.error('Error in DefaultInputHandler:', error);
       // In case of any error during processing, return the original text with minimal metadata
