@@ -1,5 +1,6 @@
 import { BaseSkill, BaseSkillRunner, loadConfig, Logger, SkillContext } from '@openglove/base';
 import { BaseModel } from '../models/BaseModel';
+import { BaseGenerativeModel } from '../models/generative';
 
 const logger = new Logger('RinseAndRepeatRunner');
 
@@ -8,7 +9,7 @@ const logger = new Logger('RinseAndRepeatRunner');
  * Configuration comes from skillRunner.json with overrides applied on top of models.json.
  */
 export class RinseAndRepeatRunner extends BaseSkillRunner {
-  private model: BaseModel | null = null;
+  private model: BaseGenerativeModel | null = null;
   private modelConfig: any = null;
 
   constructor(opts: any) {
@@ -56,7 +57,7 @@ export class RinseAndRepeatRunner extends BaseSkillRunner {
       modelInput = modelInput.replace('{skill-parameters-schema}', skillParamSchema);
       
       // Instantiate the model
-      this.model = await BaseModel.require(modelName, this.modelConfig);
+      this.model = await BaseGenerativeModel.require(modelName, this.modelConfig);
       const result = await this.model?.predict(modelInput);
 
       logger.log(`Initialized model: ${modelName}`);

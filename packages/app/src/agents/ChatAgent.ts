@@ -1,21 +1,22 @@
 import { BaseAgent } from './BaseAgent';
-import { BaseModel, Message } from '../models/BaseModel';
+import { Message } from '../models/BaseModel';
 import { SkillContext, Logger } from '@openglove/base';
 import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
 import { DefaultPipeline } from '../pipeline/DefaultPipeline';
 import { InputHandlerInput } from '../pipeline/input-handlers';
 import { PromptTemplate } from '../prompts';
+import { BaseGenerativeModel } from '../models/generative';
 
 const logger = new Logger('ChatAgent');
 
-export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
+export class ChatAgent extends BaseAgent {
 
   history: Message[] = [];
   pipeline: DefaultPipeline = new DefaultPipeline({ emitMessage: this.emitMessage.bind(this) });
-  skillsModel?: BaseModel; // Optional separate model for determining what skills to use, if not set the main model will be used
+  skillsModel?: BaseGenerativeModel; // Optional separate model for determining what skills to use, if not set the main model will be used
   skillsPromptTemplate?: string = "You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of skills to those relevant to the user's input. Be succinct, and don't list irrelevant skills. User Input: {prompt}.\n\nSkills: {skills-list}"; // Optional template for the prompt to determine skills, can be set in config
 
-  constructor(model?: M, opts: { id?: string; name?: string; role?: string } = {}) {
+  constructor(model?: BaseGenerativeModel, opts: { id?: string; name?: string; role?: string } = {}) {
     super(model, opts);
     // If config defines channels, instantiate and register them
     try {
@@ -64,11 +65,11 @@ export class ChatAgent<M extends BaseModel = BaseModel> extends BaseAgent<M> {
         const modelType = skillsModelConfig.type;
         if (modelType) {
           (async () => {
-            const mod = await import(/* webpackIgnore: true */ `../models/${modelType}`);
-            const Ctor = (mod && (mod.default ?? mod[modelType])) as any;
-            if (typeof Ctor === 'function') {
-              this.skillsModel = new Ctor(skillsModelConfig);
-            }
+            const model = await BaseGenerativeModel.require(modelType, skillsModelConfig).catch(e => {
+              logger.warn('Failed to instantiate skills model from config', { error: e instanceof Error ? e.message : String(e) });
+              return null;
+            });
+            if (model) this.skillsModel = model;
           })();
         }
       }

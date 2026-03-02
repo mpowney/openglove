@@ -1,11 +1,5 @@
 import { ChatAgent } from './agents/ChatAgent';
-import { TimeSkill } from './skills/TimeSkill';
-import { MemoriesRetrievalSkill } from './skills/MemoriesRetrievalSkill';
-import { MemoriesKeepSkill } from './skills/MemoriesKeepSkill';
-import { SearxngWebSearchSkill } from './skills/web-search/SearxngWebSearchSkill';
-import { OllamaModel } from './models/OllamaModel';
 import { Logger } from '@openglove/base';
-import { AzureOpenAIModel } from './models/AzureOpenAIModel';
 
 // configure global log level from env or default and enable console output
 //Logger.subscribe(Logger.ConsoleSubscriber(['verbose', 'info', 'warn', 'error']));

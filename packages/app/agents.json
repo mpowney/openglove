@@ -2,7 +2,7 @@
   "ChatAgent": {
     "description": "Example config for the demo ChatAgent",
     "model": {
-      "type": "OllamaModel",
+      "type": "OllamaGenerativeModel",
       "baseUrl": "{SECRET:ollama-base-url}",
       "model": "llama3.2:1b",
       "temperature": 0.7,
@@ -10,7 +10,7 @@
       "keepAlive": 600
     },
     "skillsModel": {
-      "type": "OllamaModel",
+      "type": "OllamaGenerativeModel",
       "baseUrl": "{SECRET:ollama-base-url}",
       "model": "olmo-3:7b-instruct",
       "temperature": 0,

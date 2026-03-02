@@ -1,7 +1,6 @@
-import { BaseModel, Chunk, Message } from './BaseModel';
+import { BaseGenerativeModel } from './BaseGenerativeModel';
+import { Chunk, Message } from '../BaseModel';
 import { Logger } from '@openglove/base';
-import { fetchWithTimeout, fetchWithTimeoutAndStream } from '../utils/Fetch';
-import { text } from 'stream/consumers';
 
 type AzureConfig = {
   baseUrl?: string; // full endpoint URL, e.g. https://my-azure-endpoint/openai/deployments
@@ -11,9 +10,9 @@ type AzureConfig = {
   temperature?: number;
 };
 
-const logger = new Logger('AzureOpenAIModel');
+const logger = new Logger('AzureOpenAIGenerativeModel');
 
-export class AzureOpenAIModel extends BaseModel {
+export class AzureOpenAIGenerativeModel extends BaseGenerativeModel {
   private baseUrl: string;
   private apiKey?: string;
   private modelName: string;
@@ -106,4 +105,4 @@ export class AzureOpenAIModel extends BaseModel {
   }
 }
 
-export default AzureOpenAIModel;
+export default AzureOpenAIGenerativeModel;

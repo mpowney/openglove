@@ -1,16 +1,17 @@
 import { BaseModel } from '../models/BaseModel';
 import { BaseSkill, SkillContext, loadConfig, Logger } from '@openglove/base';
 import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
+import { BaseGenerativeModel } from '../models/generative';
 
 // load config utility
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const logger = new Logger('BaseAgent');
 
-export abstract class BaseAgent<M extends BaseModel = BaseModel> {
+export abstract class BaseAgent {
   readonly id: string;
   name?: string;
   role?: string;
-  model?: M;
+  model?: BaseGenerativeModel;
   createdAt: Date;
   /** Optional configuration loaded from agents.json (by `name`) */
   config: Record<string, any> | null = null;
@@ -24,7 +25,7 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
   // map of channel -> handler used for subscription so we can unregister
   private channelHandlers = new Map<BaseChannel, (m: ChannelMessage) => Promise<void> | void>();
 
-  constructor(model?: M, opts: { id?: string; name?: string; role?: string } = {}) {
+  constructor(model?: BaseGenerativeModel, opts: { id?: string; name?: string; role?: string } = {}) {
     this.model = model;
     this.id = opts.id ?? `agent-${Date.now()}`;
     this.name = opts.name;
@@ -109,20 +110,18 @@ export abstract class BaseAgent<M extends BaseModel = BaseModel> {
 
       if (!this.model) {
         try {
-          const modelConfig = this.config.model;
-          if (modelConfig && typeof modelConfig === 'object') {
-            // If no model is set, try to create one from the config
-            const modelType = modelConfig.type;
-            if (modelType) {
-              (async () => {
-                const mod = await import(/* webpackIgnore: true */ `../models/${modelType}`);
-                const Ctor = (mod && (mod.default ?? mod[modelType])) as any;
-                if (typeof Ctor === 'function') {
-                  this.model = new Ctor(modelConfig);
-                }
-              })();
+          (async () => {
+            const modelConfig = this.config?.model;
+            if (modelConfig && typeof modelConfig === 'object') {
+              // If no model is set, try to create one from the config
+              const modelType = modelConfig.type;
+              const model = await BaseGenerativeModel.require(modelType, modelConfig).catch(e => {
+                logger.warn('Failed to instantiate model from config', { error: e instanceof Error ? e.message : String(e) });
+                return null;
+              });
+              if (model) this.model = model;
             }
-          }
+          })();
         } catch (e) {
           logger.warn('Failed to instantiate model from config', { error: e instanceof Error ? e.message : String(e) });
         }

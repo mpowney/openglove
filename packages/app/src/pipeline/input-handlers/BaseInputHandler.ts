@@ -1,5 +1,6 @@
 import { ChannelRoleType } from '../../channels/BaseChannel';
 import { BaseModel, Message } from '../../models/BaseModel';
+import { BaseGenerativeModel } from '../../models/generative';
 import { PromptTemplate } from '../../prompts';
 
 /**
@@ -221,7 +222,7 @@ export interface InputHandlerOutput extends Message, InputHandlerContext {
 }
 
 export interface InputHandlerOptions {
-  model?: BaseModel;
+  model?: BaseGenerativeModel;
   promptTemplate?: PromptTemplate;
   emitMessage?: (message: Message) => Promise<void>;
 }

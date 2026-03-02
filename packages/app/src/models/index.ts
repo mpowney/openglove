@@ -1,4 +1,6 @@
-import { AzureOpenAIModel } from "./AzureOpenAIModel";
-import { OllamaModel } from "./OllamaModel";
+import { AzureOpenAIGenerativeModel } from "./generative/AzureOpenAIGenerativeModel";
+import { OllamaGenerativeModel } from "./generative/OllamaGenerativeModel";
+import { BaseEmbeddingsModel } from "./embeddings/BaseEmbeddingsModel";
+import { OllamaEmbeddingsModel } from "./embeddings/OllamaEmbeddingsModel";
 
-export { AzureOpenAIModel, OllamaModel };
+export { AzureOpenAIGenerativeModel, OllamaGenerativeModel, BaseEmbeddingsModel, OllamaEmbeddingsModel };

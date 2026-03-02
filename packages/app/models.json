@@ -1,7 +1,14 @@
 {
-  "OllamaModel": {
+  "OllamaGenerativeModel": {
     "baseUrl": "{SECRET:ollama-base-url}",
     "model": "llama3.2:1b",
+    "temperature": 0.7,
+    "maxTokens": 2048,
+    "keepAlive": 600
+  },
+  "OllamaEmbeddingsModel": {
+    "baseUrl": "{SECRET:ollama-base-url}",
+    "model": "granite-embedding:30m",
     "temperature": 0.7,
     "maxTokens": 2048,
     "keepAlive": 600
@@ -9,17 +16,17 @@
   "LocalModel": {
     "maxTokens": 2048
   },
-  "AzureOpenAIModel-o4-mini": {
+  "AzureOpenAIGenerativeModel-o4-mini": {
     "baseUrl": "{SECRET:azure-openai-base-url-o4-mini}",
     "apiKey": "{SECRET:azure-foundry-api-key}",
     "model": "o4-mini"
   },
-  "AzureOpenAIModel": {
+  "AzureOpenAIGenerativeModel": {
     "baseUrl": "{SECRET:azure-openai-base-url-gpt-5-mini}",
     "apiKey": "{SECRET:azure-foundry-api-key}",
     "model": "gpt-5-mini"
   },
-  "AzureOpenAIModel-Kimi-K2.5": {
+  "AzureOpenAIGenerativeModel-Kimi-K2.5": {
     "baseUrl": "{SECRET:azure-openai-base-url-kimi-k2.5}",
     "apiKey": "{SECRET:azure-foundry-api-key}",
     "model": "Kimi-K2.5"

@@ -1,7 +1,8 @@
-import { BaseModel, Chunk } from './BaseModel';
+import { BaseGenerativeModel } from './BaseGenerativeModel';
+import { Chunk } from '../BaseModel';
 import { Logger } from '@openglove/base';
 
-const logger = new Logger('OllamaModel');
+const logger = new Logger('OllamaGenerativeModel');
 
 type OllamaConfig = {
   baseUrl?: string; // base URL of Ollama instance, e.g. http://localhost:11434
@@ -11,7 +12,7 @@ type OllamaConfig = {
   keepAlive?: number; // how long to keep the model in Ollama memory (seconds)
 };
 
-export class OllamaModel extends BaseModel {
+export class OllamaGenerativeModel extends BaseGenerativeModel {
   private baseUrl: string;
   private apiKey?: string;
   private modelName: string;
@@ -96,3 +97,5 @@ export class OllamaModel extends BaseModel {
     return new URL(path, this.baseUrl).toString();
   }
 }
+
+export default OllamaGenerativeModel;
