@@ -9,8 +9,6 @@
   "OllamaEmbeddingsModel": {
     "baseUrl": "{SECRET:ollama-base-url}",
     "model": "granite-embedding:30m",
-    "temperature": 0.7,
-    "maxTokens": 2048,
     "keepAlive": 600
   },
   "LocalModel": {
