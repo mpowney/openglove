@@ -1,6 +1,8 @@
-import { BaseSkill, SkillContext } from '@openglove/base';
+import { BaseSkill, Logger, SkillContext } from '@openglove/base';
 import * as fs from 'fs';
 import * as path from 'path';
+
+const logger = new Logger('MemoriesRetrievalSkill');
 
 export class MemoriesRetrievalSkill extends BaseSkill {
   private memoriesPath: string;
@@ -55,7 +57,7 @@ export class MemoriesRetrievalSkill extends BaseSkill {
             content: content
           });
         } catch (error) {
-          console.error(`Error reading memory file ${file}:`, error);
+          logger.error(`Error reading memory file ${file}:`, error);
         }
       }
 
@@ -67,7 +69,7 @@ export class MemoriesRetrievalSkill extends BaseSkill {
         message: `Retrieved ${memories.length} memory file(s)`
       };
     } catch (error) {
-      console.error('Error retrieving memories:', error);
+      logger.error('Error retrieving memories:', error);
       return {
         type: 'memories',
         success: false,

@@ -1,6 +1,8 @@
-import { BaseSkill, SkillContext } from '@openglove/base';
+import { BaseSkill, Logger, SkillContext } from '@openglove/base';
 import * as fs from 'fs';
 import * as path from 'path';
+
+const logger = new Logger('MemoriesKeepSkill');
 
 export class MemoriesKeepSkill extends BaseSkill {
   private memoriesPath: string;
@@ -70,7 +72,7 @@ export class MemoriesKeepSkill extends BaseSkill {
         message: `Memory stored successfully in ${dateStr}.md`
       };
     } catch (error) {
-      console.error('Error storing memory:', error);
+      logger.error('Error storing memory:', error);
       return {
         type: 'memory-stored',
         success: false,

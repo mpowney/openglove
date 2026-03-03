@@ -11,7 +11,7 @@ const logger = new Logger('BaseEmbeddingsModel');
  */
 export abstract class BaseEmbeddingsModel extends BaseModel {
 
-  static async require(name: string, config?: any): Promise<BaseGenerativeModel> {
+  static async require(name: string, config?: any): Promise<BaseEmbeddingsModel> {
 
     const basePath = `${require.main?.path}/models`;
     const loadedConfig = loadConfig("models.json") ?? {};
