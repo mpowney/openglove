@@ -24,9 +24,15 @@ export class CanonicalFormatInputHandler extends BaseInputHandler {
         pattern: /\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/g, 
         format: (match: string, p1: string, p2: string, p3: string) => {
           // Assume MM/DD/YYYY for US locale, could use clientLocale hint
-          const month = p1.padStart(2, '0');
-          const day = p2.padStart(2, '0');
-          return `${p3}-${month}-${day}`;
+          if (input.clientLocale && input.clientLocale.startsWith('en-US')) {
+             const month = p1.padStart(2, '0');
+             const day = p2.padStart(2, '0');
+             return `${p3}-${month}-${day}`;
+          } else {
+            const month = p1.padStart(2, '0');
+            const day = p2.padStart(2, '0');
+            return `${p3}-${month}-${day}`;
+          }
         }
       },
       // DD-MM-YYYY with dashes
@@ -158,7 +164,7 @@ export class CanonicalFormatInputHandler extends BaseInputHandler {
       type: 'full',
       originalText: rawText,
       cleanText,
-      role: 'user',
+      role: input.role,
       language: input.languageHint || 'en',
       timestamp: input.timestamp,
       clientLocale: input.clientLocale,

@@ -192,7 +192,7 @@ export class ChatAgent extends BaseAgent {
                 const skillResult = await skill.run(pipelineOutput, skillCtx);
                 if (skillResult !== undefined) {
                   const content = typeof skillResult === 'string' ? skillResult : JSON.stringify(skillResult, null, 2);
-                  await this.emitMessage({ role: 'supplementary' as const, content: String(content), ts: Date.now(), type: 'end' });
+                  await this.emitMessage({ role: 'tool' as const, content: String(content), ts: Date.now(), type: 'end' });
                 }
               } catch (e) {
                 logger.warn(`Failed to run skill ${skillName}`, e);

@@ -8,7 +8,7 @@ export type ChannelMessage = {
 };
 
 export type ChannelEventType = 'typing' | 'thinking' | 'progress';
-export type ChannelRoleType = 'assistant' | 'system' | 'user' | 'supplementary';
+export type ChannelRoleType = 'assistant' | 'system' | 'user' | 'tool' | string;
 
 export type ChannelEvent = {
   type: ChannelEventType;

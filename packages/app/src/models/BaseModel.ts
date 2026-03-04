@@ -5,8 +5,9 @@ export type ModelMetadata = Record<string, any>;
 
 export interface Chunk {
     type: 'delta' | 'full' | 'start' | 'end' | string;
-    role?: 'system' | 'user' | 'assistant' | 'supplementary';
+    role?: 'system' | 'user' | 'assistant' | 'tool' | string;
     content?: string;
+    data?: any;
     [key: string]: any;
 }
 
