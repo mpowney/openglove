@@ -1,6 +1,6 @@
 import { BaseInputHandler, DetectedEntity, InputHandlerInput, InputHandlerOptions, InputHandlerOutput } from './BaseInputHandler';
 import { BaseModel } from '../../models/BaseModel';
-import { PromptTemplate } from '../../prompts';
+import { PromptTemplate } from '../../utils/prompts';
 import { generateUUID } from '../../utils/UUID';
 
 /**

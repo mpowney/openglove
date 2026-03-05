@@ -1,0 +1,4 @@
+{
+  "databasePath": "./embeddings.db",
+  "description": "SQLite database configuration for embeddings index storage. Update databasePath to point to your desired SQLite database file location."
+}

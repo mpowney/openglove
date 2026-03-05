@@ -1,7 +1,7 @@
 import { ChannelRoleType } from '../../channels/BaseChannel';
 import { BaseModel, Message } from '../../models/BaseModel';
 import { BaseGenerativeModel } from '../../models/generative';
-import { PromptTemplate } from '../../prompts';
+import { PromptTemplate } from '../../utils/prompts';
 
 /**
  * Shared metadata context for input and output.

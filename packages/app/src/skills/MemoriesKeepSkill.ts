@@ -1,6 +1,8 @@
-import { BaseSkill, Logger, SkillContext } from '@openglove/base';
+import { BaseSkill, loadConfig, Logger, SkillContext } from '@openglove/base';
 import * as fs from 'fs';
 import * as path from 'path';
+import { FilesystemEmbeddingsIndex } from '../utils/embeddings';
+import { BaseEmbeddingsModel } from '../models';
 
 const logger = new Logger('MemoriesKeepSkill');
 
@@ -64,8 +66,24 @@ export class MemoriesKeepSkill extends BaseSkill {
       // Write to file
       fs.writeFileSync(filePath, fileContent, 'utf-8');
 
+      const config = loadConfig('memoriesSkills.json');
+      const modelType = config?.modelType || 'OllamaEmbeddingsModel';
+      const modelConfig = config?.modelConfig || {};
+
+      const model = await BaseEmbeddingsModel.require(modelType, modelConfig)
+      const fsIndexer = new FilesystemEmbeddingsIndex(
+        model, 
+        this.memoriesPath,
+        {
+            fileExtensions:['.md'],
+            chunkSize: 500,
+            chunkOverlap: 50
+        }
+      );
+      await fsIndexer.index(); // Index the memories directory after writing the new memory
+
       return {
-        type: 'memory-stored',
+        type: 'memoryKept',
         success: true,
         filename: `${dateStr}.md`,
         timestamp: `${dateStr} ${timeStr}`,
@@ -74,7 +92,7 @@ export class MemoriesKeepSkill extends BaseSkill {
     } catch (error) {
       logger.error('Error storing memory:', error);
       return {
-        type: 'memory-stored',
+        type: 'memoryKept',
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
         message: 'Failed to store memory'

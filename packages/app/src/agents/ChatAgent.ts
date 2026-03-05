@@ -4,7 +4,7 @@ import { SkillContext, Logger } from '@openglove/base';
 import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
 import { DefaultPipeline } from '../pipeline/DefaultPipeline';
 import { InputHandlerInput } from '../pipeline/input-handlers';
-import { PromptTemplate } from '../prompts';
+import { PromptTemplate } from '../utils/prompts';
 import { BaseGenerativeModel } from '../models/generative';
 
 const logger = new Logger('ChatAgent');

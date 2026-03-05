@@ -1,7 +1,8 @@
-import { BaseSkill, Logger, SkillContext } from '@openglove/base';
+import { BaseSkill, loadConfig, Logger, SkillContext } from '@openglove/base';
 import * as fs from 'fs';
 import * as path from 'path';
 import { BaseEmbeddingsModel } from '../models';
+import { FilesystemEmbeddingsIndex } from '../utils/embeddings';
 
 const logger = new Logger('MemoriesIndexSkill');
 
@@ -41,9 +42,34 @@ export class MemoriesIndexSkill extends BaseSkill {
         fs.mkdirSync(this.memoriesPath, { recursive: true });
       }
 
+      const config = loadConfig('memoriesSkills.json');
+      const modelType = config?.modelType || 'OllamaEmbeddingsModel';
+      const modelConfig = config?.modelConfig || {};
+
+      const model = await BaseEmbeddingsModel.require(modelType, modelConfig)
+      const fsIndexer = new FilesystemEmbeddingsIndex(
+        model, 
+        this.memoriesPath,
+        {
+            fileExtensions:['.md'],
+            chunkSize: 500,
+            chunkOverlap: 50
+        }
+      );
+      await fsIndexer.index(); // Index the memories directory after writing the new memory
+
+      return {
+        type: 'memoriesIndex',
+        success: true,
+        message: 'Memories re-indexed successfully'
+      };
     } catch (e) {
-      logger.error('Failed to ensure memories directory exists', e);
-      throw new Error('Failed to access memories directory');
+      logger.error('Failed to index memories', e);
+      return {
+        type: 'memoriesIndex',
+        success: false,
+        message: 'Failed to index memories'
+      };
     }
 
   }

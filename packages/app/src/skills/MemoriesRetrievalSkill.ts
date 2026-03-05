@@ -1,6 +1,8 @@
-import { BaseSkill, Logger, SkillContext } from '@openglove/base';
+import { BaseSkill, loadConfig, Logger, SkillContext } from '@openglove/base';
 import * as fs from 'fs';
 import * as path from 'path';
+import { BaseEmbeddingsModel } from '../models';
+import { FilesystemEmbeddingsIndex } from '../utils/embeddings';
 
 const logger = new Logger('MemoriesRetrievalSkill');
 
@@ -40,6 +42,45 @@ export class MemoriesRetrievalSkill extends BaseSkill {
           count: 0
         };
       }
+
+      if (inputStr) {
+        logger.log(`Retrieving memories with input: ${inputStr}`);
+
+        const config = loadConfig('memoriesSkills.json');
+        const modelType = config?.modelType || 'OllamaEmbeddingsModel';
+        const modelConfig = config?.modelConfig || {};
+  
+        const model = await BaseEmbeddingsModel.require(modelType, modelConfig)
+        const fsIndexer = new FilesystemEmbeddingsIndex(
+          model, 
+          this.memoriesPath,
+          {
+              fileExtensions:['.md'],
+              chunkSize: 500,
+              chunkOverlap: 50
+          }
+        );
+        await fsIndexer.index(); // Index the memories directory after writing the new memory
+        const files = await fsIndexer.search(inputStr, 10); // Search for relevant memories based on input
+        return {
+          type: 'memories',
+          success: true,
+          memories: files.map(file => { 
+            const filePath = path.join(this.memoriesPath, file.name);
+            try {
+              const content = fs.readFileSync(filePath, 'utf-8');
+              return { filename: file.name, content } 
+            } catch (error) {
+              logger.error(`Error reading memory file ${file.name}:`, error);
+              return { filename: file.name, content: '' };
+            }
+          }),
+          count: files.length,
+          message: `Retrieved ${files.length} relevant memory file(s) based on input`
+        };        
+      }
+
+      logger.log('Retrieving memories with no specific input');
 
       // Read all files in the memories directory
       const files = fs.readdirSync(this.memoriesPath);
