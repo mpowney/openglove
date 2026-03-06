@@ -60,11 +60,6 @@ describe('OllamaGenerativeModel', () => {
       expect((model as any).modelName).toBe('custom-model');
     });
 
-    it('should handle apiKey option', () => {
-      const model = new OllamaGenerativeModel({ apiKey: 'test-key-123' });
-      expect((model as any).apiKey).toBe('test-key-123');
-    });
-
     it('should load config from loaded models.json', () => {
       const model = new OllamaGenerativeModel({}, { name: 'test-model' });
       expect(model.config).toBeDefined();

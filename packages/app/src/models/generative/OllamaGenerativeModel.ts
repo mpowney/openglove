@@ -6,7 +6,6 @@ const logger = new Logger('OllamaGenerativeModel');
 
 type OllamaConfig = {
   baseUrl?: string; // base URL of Ollama instance, e.g. http://localhost:11434
-  apiKey?: string; // optional API key
   model?: string; // model name in Ollama
   contextLength?: number; // approximate context length
   keepAlive?: number; // how long to keep the model in Ollama memory (seconds)
@@ -24,7 +23,6 @@ export class OllamaGenerativeModel extends BaseGenerativeModel {
     // allow constructor opts to override config file
     const cfg = this.config ?? {};
     this.baseUrl = (opts.baseUrl ?? (cfg as any)?.baseUrl) ?? 'http://localhost:11434';
-    this.apiKey = opts.apiKey ?? (cfg as any)?.apiKey ?? undefined;
     this.modelName = (opts.model ?? (cfg as any)?.model) ?? 'ollama';
     this.contextLength = opts.contextLength ?? (cfg as any)?.contextLength;
     this.keepAlive = opts.keepAlive ?? (cfg as any)?.keepAlive;

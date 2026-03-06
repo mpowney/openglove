@@ -105,63 +105,6 @@ describe('ModelTestHarness - OllamaGenerativeModel Example', () => {
     });
   });
 
-  describe('Integration Tests (Real Services - When Available)', () => {
-    let harness: ModelTestHarness;
-
-    beforeEach(() => {
-      // Skip if service unavailable
-      harness = new ModelTestHarness(OllamaGenerativeModel, {
-        mockMode: 'none',
-        baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
-        skipIfUnavailable: true,
-        timeout: 30000,
-        verbose: true
-      });
-    });
-
-    afterEach(() => {
-      harness.cleanup();
-    });
-
-    it('should predict with real Ollama service - integration', async () => {
-      const result = await harness.testIntegrationPredict('What is AI?', {
-        timeout: 30000
-      });
-
-      if (result) {
-        expect(result).toBeDefined();
-        // Verify response structure
-        expect(typeof result === 'object').toBe(true);
-      }
-    });
-
-    it('should handle streaming with real service - integration', async () => {
-      const chunks = await harness.testIntegrationStream('Explain quantum computing', {
-        timeout: 30000,
-        chunkLimit: 50
-      });
-
-      if (chunks) {
-        expect(Array.isArray(chunks)).toBe(true);
-        // Verify chunk structure if any were received
-        if (chunks.length > 0) {
-          expect(chunks[0]).toHaveProperty('type');
-        }
-      }
-    });
-
-    it('should handle graceful service failure', async () => {
-      // When service is unavailable and skipIfUnavailable is true,
-      // the test returns null instead of throwing
-      const result = await harness.testIntegrationPredict('This is a prompt', {
-        timeout: 30000
-      });
-
-      // Result is null when service unavailable
-      expect(result === null || result !== undefined).toBe(true);
-    });
-  });
-
   describe('Configuration Examples', () => {
     it('should support full mock mode', () => {
       const harness = new ModelTestHarness(OllamaGenerativeModel, {
@@ -258,14 +201,12 @@ describe('ModelTestHarness - OllamaGenerativeModel Example', () => {
 });
 
 /**
- * Running these tests:
+ * Running these unit test examples:
  *
- * Unit tests (always run):
- *   pnpm jest __tests__/examples/ModelTestHarness.example.test.ts
+ * Run all unit tests:
+ *   pnpm test __tests__/examples/ModelTestHarness.example.test.ts
  *
- * With integration tests (requires Ollama running):
- *   OLLAMA_URL=http://localhost:11434 pnpm jest __tests__/examples/ModelTestHarness.example.test.ts
- *
- * Skip integration tests:
- *   NODE_ENV=test pnpm jest __tests__/examples/ModelTestHarness.example.test.ts --testNamePattern="Unit Tests"
+ * For integration tests (real Ollama service), see:
+ *   __tests__/examples/ModelTestHarness.integration.test.ts
+ *   pnpm test:integration __tests__/examples/ModelTestHarness.integration.test.ts
  */
