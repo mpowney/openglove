@@ -20,9 +20,14 @@ describe('Ollama real-service integration', () => {
     }
   });
 
-  it('generative model should return a prediction from real Ollama', async () => {
-    if (!serviceAvailable) return;
+  it('should confirm Ollama service availability', () => {
+    if (!serviceAvailable) {
+      console.warn(`Ollama service is not available at ${OLLAMA_URL}. Skipping real-service integration tests.`);
+    }
+    expect(serviceAvailable).toBe(true);
+  });
 
+  it('generative model should return a prediction from real Ollama', async () => {
     const model = new OllamaGenerativeModel({
       baseUrl: OLLAMA_URL,
       model: OLLAMA_GENERATIVE_MODEL
