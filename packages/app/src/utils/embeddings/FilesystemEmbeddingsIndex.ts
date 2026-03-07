@@ -116,7 +116,7 @@ export class FilesystemEmbeddingsIndex extends BaseEmbeddingsIndex {
    */
   async index(): Promise<void> {
     this.items = [];
-    await this.index();
+    this.chunks = [];
     
     // Load existing chunks from SQLite to check for existing checksums
     const existingChunks = await this.loadFromSqlite();

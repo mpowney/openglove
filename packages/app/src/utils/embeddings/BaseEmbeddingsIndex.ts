@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { BaseEmbeddingsModel } from '../../models/embeddings/BaseEmbeddingsModel';
 import { loadConfig } from '@openglove/base';
 import Database from 'better-sqlite3';
@@ -180,12 +182,19 @@ export abstract class BaseEmbeddingsIndex {
   /**
    * Initialize SQLite database with the required schema.
    * Reads database location from sqlite.json config file.
+   * Ensures the directory for the database file exists.
    * @returns Database instance
    */
   protected initializeSqliteDatabase(): Database.Database {
     const config = loadConfig('sqlite.json');
     if (!config || !config.databasePath) {
       throw new Error('SQLite configuration not found or databasePath not specified in sqlite.json');
+    }
+
+    // Ensure the directory for the database file exists
+    const dbDir = path.dirname(config.databasePath);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
     }
 
     const db = new Database(config.databasePath);
