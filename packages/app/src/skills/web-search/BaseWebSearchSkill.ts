@@ -29,12 +29,12 @@ export abstract class BaseWebSearchSkill extends BaseSkill {
   protected params: Record<string, string>;
   protected resultCount: number;
 
-  constructor(opts: BaseWebSearchOptions & { id?: string; name?: string; description?: string; paramaterSchema?: string; tags?: string[] }) {
+  constructor(opts: BaseWebSearchOptions & { id?: string; name?: string; description?: string; parameterSchema?: string; tags?: string[] }) {
     super({
       id: opts.id,
       name: opts.name,
       description: opts.description,
-      paramaterSchema: '{ input: string }',
+      parameterSchema: '{ input: string }',
       tags: opts.tags
     });
     const cfg = (this as any).config as Record<string, any> | undefined;

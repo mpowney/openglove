@@ -13,7 +13,7 @@ export class MemoriesIndexSkill extends BaseSkill {
     super({
       name: opts.name ?? 'MemoriesIndexSkill',
       description: opts.description ?? 'Re-indexes all memories files to update the embeddings index',
-      paramaterSchema: '{ input: string }',
+      parameterSchema: '{ input: string }',
       tags: opts.tags ?? ['memories', 'store', 'keep', 'save memory']
     });
 

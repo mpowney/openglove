@@ -23,7 +23,7 @@ export class RinseAndRepeatRunner extends BaseSkillRunner {
       const skillInfo = await skill.getInfo();
       const skillName = skillInfo.name || 'unknown';
       const skillDescription = skillInfo.description || 'No description available';
-      const skillParamSchema = skillInfo.paramaterSchema || '{}';
+      const skillParamSchema = skillInfo.parameterSchema || '{}';
 
       // Load configuration
       const skillRunnerConfig = this.loadSkillRunnerConfig();

@@ -15,7 +15,7 @@ export abstract class BaseSkill {
   readonly id: string;
   name?: string;
   description?: string;
-  paramaterSchema?: string;
+  parameterSchema?: string;
   tags: string[];
   /** Config object loaded from skills.json (by `name`) */
   config: Record<string, any>;
@@ -60,11 +60,11 @@ export abstract class BaseSkill {
     return process.env.SKILL_RUNNERS_PATH ?? '../runners';
   }
 
-  constructor(opts: { id?: string; name?: string; description?: string; paramaterSchema?: string; tags?: string[] } = {}) {
+  constructor(opts: { id?: string; name?: string; description?: string; parameterSchema?: string; tags?: string[] } = {}) {
     this.id = opts.id ?? `skill-${Date.now()}`;
     this.name = opts.name;
     this.description = opts.description;
-    this.paramaterSchema = opts.paramaterSchema;
+    this.parameterSchema = opts.parameterSchema;
     this.tags = opts.tags ?? [];
     // Attach config matching this skill's name (if any)
     // Use shared loader so behaviour is consistent with other components
@@ -168,11 +168,11 @@ export abstract class BaseSkill {
 
   protected abstract runSkill(input: any, ctx?: SkillContext): Promise<any>;
 
-  async getInfo(): Promise<{ name: string; description?: string; paramaterSchema?: string; tags: string[] }> {
+  async getInfo(): Promise<{ name: string; description?: string; parameterSchema?: string; tags: string[] }> {
     return {
       name: this.name || this.constructor.name,
       description: this.description,
-      paramaterSchema: this.paramaterSchema,
+      parameterSchema: this.parameterSchema,
       tags: this.tags
     };
   }

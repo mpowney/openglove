@@ -1,0 +1,7 @@
+{
+    "contextManager": {
+        "DefaultContextManager": {
+            "type": "DefaultContextManager"
+        }
+    },
+}

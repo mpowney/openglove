@@ -25,7 +25,7 @@ export class WebBrowserSkill extends BaseSkill {
       name: opts.name ?? 'WebBrowserSkill', 
       description: opts.description ?? 'Handles web browser related tasks', 
       tags: opts.tags ?? ['web-browser'],
-      paramaterSchema: '{ url: string, actions?: { click?: string; fill?: Record<string, string> }[] }'
+      parameterSchema: '{ url: string, actions?: { click?: string; fill?: Record<string, string> }[] }'
     });
   }
 
@@ -41,7 +41,7 @@ export class WebBrowserSkill extends BaseSkill {
     if (typeof _input === 'string') {
       config = { url: _input.trim() };
     } else if (typeof _input === 'object' && _input !== null) {
-      config = _input.input as WebBrowserSkillInput;
+      config = _input as WebBrowserSkillInput;
     } else {
       throw new Error('Invalid input type for WebBrowserSkill.run');
     }
