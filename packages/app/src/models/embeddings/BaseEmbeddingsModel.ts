@@ -13,7 +13,7 @@ export abstract class BaseEmbeddingsModel extends BaseModel {
 
   static async require(name: string, config?: any): Promise<BaseEmbeddingsModel> {
 
-    const basePath = `${require.main?.path}/models`;
+    const basePath =  `${__dirname}`;
     const loadedConfig = loadConfig("models.json") ?? {};
     const modelConfig = loadedConfig[name] ?? {};
 

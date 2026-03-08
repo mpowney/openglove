@@ -12,14 +12,12 @@ const logger = new Logger('BaseSkillRunner');
  * Skill runners are initialized for each skill execution and can run logic before/after the skill.
  */
 export abstract class BaseSkillRunner {
-  /** Path to the models directory (relative or absolute) - set by subclasses */
-  protected modelsPath: string = '../models';
   /** Directory where configuration files are located */
   protected configDir: string = require.main?.path ?? process.cwd();
 
   static async require(name: string, config?: any): Promise<BaseSkillRunner> {
 
-    const basePath = `${require.main?.path}/runners`;
+    const basePath = `${__dirname}`;
     try {
       // Try to load from skills/index.ts first
       const index: any = await import(/* webpackIgnore: true */ `${basePath}`);
@@ -56,27 +54,6 @@ export abstract class BaseSkillRunner {
    */
   async runAfterSkill(_skill: BaseSkill, _result: unknown, _input: any, _ctx?: SkillContext): Promise<void> {
     // No-op by default
-  }
-
-  /**
-   * Dynamically instantiate a model from its class name and configuration.
-   * Looks for the model class in the modelsPath directory.
-   */
-  protected async instantiateModel(modelName: string, config: any): Promise<any> {
-    try {
-      const modelPath = `${this.modelsPath}/${modelName}`;
-      const mod = await import(/* webpackIgnore: true */ modelPath);
-      const Ctor = (mod && (mod.default ?? mod[modelName])) as any;
-      if (typeof Ctor === 'function') {
-        logger.log(`Instantiated model: ${modelName}`);
-        return new Ctor(config);
-      } else {
-        throw new Error(`Model class ${modelName} not found or is not a constructor`);
-      }
-    } catch (err) {
-      logger.error(`Failed to instantiate model ${modelName}: ${err}`);
-      throw err;
-    }
   }
 
   /**

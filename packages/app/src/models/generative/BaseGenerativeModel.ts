@@ -12,7 +12,7 @@ export abstract class BaseGenerativeModel extends BaseModel {
 
   static async require(name: string, config?: any): Promise<BaseGenerativeModel> {
 
-    const basePath = `${require.main?.path}/models`;
+    const basePath = `${__dirname}`;
     const loadedConfig = loadConfig("models.json") ?? {};
     const modelConfig = loadedConfig[name] ?? {};
 
