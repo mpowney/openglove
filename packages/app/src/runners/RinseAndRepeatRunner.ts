@@ -15,8 +15,6 @@ export class RinseAndRepeatRunner extends BaseSkillRunner {
   constructor(opts: any) {
     super();
     this.configDir = process.cwd(); // Set config directory to current working directory to find skillRunner.json
-    // Set the models path relative to app package
-    this.modelsPath = '../models';
   }
 
   async runBeforeSkill(skill: BaseSkill, input: any, _ctx?: SkillContext): Promise<void> {

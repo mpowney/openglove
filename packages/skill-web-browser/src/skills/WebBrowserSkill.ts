@@ -41,7 +41,7 @@ export class WebBrowserSkill extends BaseSkill {
     if (typeof _input === 'string') {
       config = { url: _input.trim() };
     } else if (typeof _input === 'object' && _input !== null) {
-      config = _input as WebBrowserSkillInput;
+      config = _input.input as WebBrowserSkillInput;
     } else {
       throw new Error('Invalid input type for WebBrowserSkill.run');
     }
