@@ -14,6 +14,7 @@ export class DefaultPipeline extends BasePipeline {
   protected contextManager: BaseContextManager;
   protected actionHandler: BaseActionHandler;
   protected outputHandler: BaseOutputHandler;
+  name?: string = 'DefaultPipeline';
 
   constructor(opts: PipelineOptions = {}) {
     super();

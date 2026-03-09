@@ -2,6 +2,7 @@ import { BaseSkillRunner } from '../runners/BaseSkillRunner';
 import { Logger } from '../utils/Logger';
 import { containsSecrets, getSecretCount } from '../utils/Secrets';
 import { loadConfig } from '../utils/Config';
+import * as path from 'path';
 
 export type SkillContext = {
   agentId?: string;
@@ -22,32 +23,97 @@ export abstract class BaseSkill {
   /** Optional skill runner for executing logic before/after skill execution */
   protected skillRunner: BaseSkillRunner | null = null;
 
+  private static get skillsPathCandidates(): string[] {
+    const cwd = process.cwd();
+
+    const configPath = process.env.SKILLS_CONFIG_PATH
+      ? path.resolve(cwd, process.env.SKILLS_CONFIG_PATH)
+      : undefined;
+    const configDir = configPath ? path.dirname(configPath) : undefined;
+
+    const mainSkillsPath = require.main?.path
+      ? path.resolve(require.main.path, 'skills')
+      : undefined;
+
+    return BaseSkill.uniquePaths([
+      process.env.SKILLS_PATH,
+      mainSkillsPath,
+      path.resolve(cwd, 'skills'),
+      path.resolve(cwd, 'src', 'skills'),
+      path.resolve(cwd, 'dist', 'skills'),
+      configDir ? path.resolve(configDir, 'skills') : undefined,
+      configDir ? path.resolve(configDir, 'src', 'skills') : undefined,
+      configDir ? path.resolve(configDir, 'dist', 'skills') : undefined,
+    ]);
+  }
+
+  private static uniquePaths(paths: Array<string | undefined>): string[] {
+    const cleaned = paths
+      .filter((p): p is string => Boolean(p && p.trim().length > 0))
+      .map((p) => path.normalize(p));
+
+    return [...new Set(cleaned)];
+  }
+
+  private static async importFromCandidates(specifiers: string[]): Promise<any | null> {
+    for (const specifier of specifiers) {
+      try {
+        return await import(/* webpackIgnore: true */ `${specifier}`);
+      } catch {
+        // Try next candidate.
+      }
+    }
+    return null;
+  }
+
+  private static moduleSpecifiers(modulePath: string): string[] {
+    return [
+      modulePath,
+      `${modulePath}.ts`,
+      `${modulePath}.js`,
+      `${modulePath}.cjs`,
+      `${modulePath}.mjs`,
+    ];
+  }
+
   static async require(name: string, config?: any): Promise<BaseSkill> {
 
-    const basePath = `${require.main?.path}/skills`;
-    try {
-      // Try to load from skills/index.ts first
-      const index: any = await import(/* webpackIgnore: true */ `${basePath}`);
-      let Ctor = index[name];
-      
-      // If not found in index, try loading from individual skill file
-      if (!Ctor) {
-        const mod = await import(/* webpackIgnore: true */ `${basePath}/${name}`);
-        Ctor = (mod && (mod.default ?? mod[name])) as any;
-      }
-      
-      if (typeof Ctor === 'function') {
-        try {
-          const instance = new Ctor({ ...(config || {}), name: name });
-          return instance;
-        } catch (e) {
-          logger.error('Failed to register skill from config', e);
+    const basePaths = BaseSkill.skillsPathCandidates;
+
+    for (const basePath of basePaths) {
+      try {
+        // Try to load from skills/index first.
+        const index = await BaseSkill.importFromCandidates(
+          BaseSkill.moduleSpecifiers(path.join(basePath, 'index')).concat(
+            BaseSkill.moduleSpecifiers(basePath)
+          )
+        );
+        let Ctor = index?.[name];
+
+        // If not found in index, try loading from individual skill file.
+        if (!Ctor) {
+          const mod = await BaseSkill.importFromCandidates(
+            BaseSkill.moduleSpecifiers(path.join(basePath, name))
+          );
+          Ctor = (mod && (mod.default ?? mod[name])) as any;
         }
+
+        if (typeof Ctor === 'function') {
+          try {
+            const instance = new Ctor({ ...(config || {}), name });
+            return instance;
+          } catch (e) {
+            logger.error('Failed to register skill from config', e);
+          }
+        }
+      } catch (e) {
+        logger.warn(`Failed to load skill module for ${name} from ${basePath}`, e);
       }
-    } catch (e) {
-      logger.warn(`Failed to load skill module for ${name}`, e);
     }
-    throw new Error(`Skill ${name} not found in path ${basePath} or is not a constructor`);
+
+    throw new Error(
+      `Skill ${name} not found in any configured skills path (${basePaths.join(', ')}) or is not a constructor`
+    );
   }
 
   /** Path used to load the skills config; env SKILLS_CONFIG_PATH or ./skills.json */

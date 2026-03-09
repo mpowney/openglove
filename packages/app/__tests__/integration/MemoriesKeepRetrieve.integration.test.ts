@@ -74,7 +74,6 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
   it('keeps a memory and retrieves it by search query', async () => {
     const previousCwd = process.cwd();
     const previousSkillsConfigPath = process.env.SKILLS_CONFIG_PATH;
-    const previousRequireMainPath = (require.main as any)?.path;
     const tmpRoot = await fs.promises.mkdtemp(
       path.join(os.tmpdir(), 'memories-keep-retrieve-integration-')
     );
@@ -152,10 +151,6 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
         delete process.env.SKILLS_CONFIG_PATH;
       } else {
         process.env.SKILLS_CONFIG_PATH = previousSkillsConfigPath;
-      }
-
-      if (require.main) {
-        (require.main as any).path = previousRequireMainPath;
       }
 
       process.chdir(previousCwd);

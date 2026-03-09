@@ -40,8 +40,7 @@ export abstract class BasePipeline {
   async run(input: InputHandlerInput, emitMessage?: (message: Message) => Promise<void>): Promise<string> {
 
     const all = loadConfig(BasePipeline.configPath) || {};
-    const cfg = (this.name && all && all[this.name]) || {};
-    const config = cfg;
+    const config = (this.name && all && all[this.name]) || {};
 
     const ingested = await this.inputHandler.handle(input);
     const managed = await this.contextManager.manage(ingested, config['contextManager'] || {});

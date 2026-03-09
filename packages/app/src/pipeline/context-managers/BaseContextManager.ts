@@ -1,5 +1,5 @@
 import { InputHandlerOutput } from "../input-handlers";
-import { BaseModel } from "../../models/BaseModel";
+import { BaseGenerativeModel } from "../../models/generative";
 
 /**
  * Abstract base class for pipeline context management.
@@ -7,10 +7,10 @@ import { BaseModel } from "../../models/BaseModel";
  */
 export abstract class BaseContextManager {
   protected readonly conversationContext: InputHandlerOutput[];
-  protected planningModel?: BaseModel;
+  protected planningModel?: BaseGenerativeModel;
   protected proposedToolNames: string[];
 
-  constructor(conversationContext: InputHandlerOutput[] = [], planningModel?: BaseModel) {
+  constructor(conversationContext: InputHandlerOutput[] = [], planningModel?: BaseGenerativeModel) {
     this.conversationContext = [...conversationContext];
     this.planningModel = planningModel;
     this.proposedToolNames = [];

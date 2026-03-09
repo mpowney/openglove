@@ -13,7 +13,7 @@ const logger = new Logger('BaseSkillRunner');
  */
 export abstract class BaseSkillRunner {
   /** Directory where configuration files are located */
-  protected configDir: string = require.main?.path ?? process.cwd();
+  protected configDir: string = process.cwd();
 
   static async require(name: string, config?: any): Promise<BaseSkillRunner> {
 
