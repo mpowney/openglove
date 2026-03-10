@@ -20,19 +20,25 @@ export class DefaultInputHandler extends BaseInputHandler {
 
     try {
 
+      const opts = {
+        emitMessage: this.emitMessage,
+        promptTemplate: this.promptTemplate,
+        model: this.model,
+      }
+
       let handlers = [
-        new UnicodeNfcInputHandler(this.opts),
-        new HostnameDetectionInputHandler(this.opts),
-        new PatternDetectionInputHandler(this.opts),
-        new LowercaseInputHandler(this.opts),
-        new ControlCharacterStripInputHandler(this.opts),
-        new CanonicalFormatInputHandler(this.opts),
-        new SpacingPunctuationInputHandler(this.opts),
-        new WhitespaceNormalisationInputHandler(this.opts),
+        new UnicodeNfcInputHandler(opts),
+        new HostnameDetectionInputHandler(opts),
+        new PatternDetectionInputHandler(opts),
+        new LowercaseInputHandler(opts),
+        new ControlCharacterStripInputHandler(opts),
+        new CanonicalFormatInputHandler(opts),
+        new SpacingPunctuationInputHandler(opts),
+        new WhitespaceNormalisationInputHandler(opts),
       ]
 
       try {
-        handlers.push(new ModelMatchingInputHandler(this.opts));
+        handlers.push(new ModelMatchingInputHandler(opts));
       }
       catch (err) {
         logger.warn('ModelMatchingInputHandler could not be initialized, skipping. Error:', err);

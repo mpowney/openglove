@@ -233,9 +233,35 @@ export interface InputHandlerOptions {
  * before it is forwarded to the ContextManager stage.
  */
 export abstract class BaseInputHandler {
+  protected emitMessage?: (message: Message) => Promise<void>;
+  protected promptTemplate?: PromptTemplate;
+  protected model?: BaseGenerativeModel;
+
   abstract handle(input: InputHandlerInput): Promise<InputHandlerOutput>;
-  opts?: InputHandlerOptions;
   constructor(opts: InputHandlerOptions = {}) {
-    this.opts = opts;
+    this.emitMessage = opts.emitMessage;
+    this.promptTemplate = opts.promptTemplate;
+    this.model = opts.model;
   }
+  
+  protected emitInputPrompt(content: string): void {
+    if (this.emitMessage) {
+      const message: Message = { type: 'prompt', role: 'system', content, ts: Date.now() };
+      this.emitMessage(message).catch(() => {});
+    }
+  }
+
+  protected emitInputResponse(content: string | any): void {
+    if (this.emitMessage) {
+      const message: Message = { 
+        type: 'full',
+        role: 'system', 
+        content: typeof content === 'string' ? content : JSON.stringify(content),
+        ts: Date.now()
+      };
+      this.emitMessage(message).catch(() => {});
+    }
+  }
+
+
 }

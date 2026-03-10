@@ -18,9 +18,9 @@ export class DefaultPipeline extends BasePipeline {
 
   constructor(opts: PipelineOptions = {}) {
     super();
-    this.inputHandler = opts.inputHandler ?? new DefaultInputHandler();
-    this.contextManager = opts.contextManager ?? new DefaultContextManager();
-    this.actionHandler = opts.actionHandler ?? new DefaultActionHandler();
-    this.outputHandler = opts.outputHandler ?? new DefaultOutputHandler();
+    this.inputHandler = opts.inputHandler ?? new DefaultInputHandler({ emitMessage: opts.emitMessage });
+    this.contextManager = opts.contextManager ?? new DefaultContextManager({ emitMessage: opts.emitMessage });
+    this.actionHandler = opts.actionHandler ?? new DefaultActionHandler({ emitMessage: opts.emitMessage });
+    this.outputHandler = opts.outputHandler ?? new DefaultOutputHandler({ emitMessage: opts.emitMessage });
   }
 }

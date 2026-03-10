@@ -141,7 +141,7 @@ export class ChatAgent extends BaseAgent {
     const receivedAt = new Date();
     const pipelineInput: InputHandlerInput = { text: input, ts: receivedAt.getTime(), type: 'text' };
     const pipelineOutput = await this.pipeline.run(pipelineInput);
-    const userMessage: Message = { role: 'user', content: pipelineOutput, ts: receivedAt.getTime(), type: 'end' }
+    const userMessage: Message = { role: 'user', content: pipelineOutput.originalText, ts: receivedAt.getTime(), type: 'end' }
     this.emitMessage(userMessage).catch(() => {});
     logger.verbose('User input received', { input: pipelineOutput });
 
@@ -149,7 +149,7 @@ export class ChatAgent extends BaseAgent {
     const skillsModel = this.skillsModel || this.model;
     if (skillsModel) {
       const promptTemplate = new PromptTemplate('find-skills.txt');
-      promptTemplate.setPlaceholders({ 'prompt': pipelineOutput || input });
+      promptTemplate.setPlaceholders({ 'prompt': pipelineOutput.originalText || input });
       promptTemplate.setPlaceholders({ 'skills-list': this.skills.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n') });
 
       const skillsPrompt = await promptTemplate.render();

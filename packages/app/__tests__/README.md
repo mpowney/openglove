@@ -71,6 +71,11 @@ Run only memory skills tests:
 pnpm test memories.test.ts
 ```
 
+Run only integration test for DefaultPipeline class 
+```bash
+pnpm test:integration __tests__/integration/DefaultPipeline.integration.test.ts
+```
+
 Run tests with coverage:
 ```bash
 pnpm test --coverage

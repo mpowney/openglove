@@ -4,7 +4,7 @@ import { loadConfig, Logger } from '@openglove/base';
 export type ModelMetadata = Record<string, any>;
 
 export interface Chunk {
-    type: 'delta' | 'full' | 'start' | 'end' | string;
+    type: 'prompt' | 'delta' | 'full' | 'start' | 'end' | string;
     role?: 'system' | 'user' | 'assistant' | 'tool' | string;
     content?: string;
     data?: any;

@@ -1,4 +1,4 @@
-import { BaseInputHandler, InputHandlerInput } from './input-handlers';
+import { BaseInputHandler, InputHandlerInput, InputHandlerOutput } from './input-handlers';
 import { BaseContextManager } from './context-managers';
 import { BaseActionHandler } from './ActionHandler';
 import { BaseOutputHandler } from './OutputHandler';
@@ -37,16 +37,16 @@ export abstract class BasePipeline {
    * 3. Execution        (BaseActionHandler)  — executes any actions
    * 4. Output           (BaseOutputHandler)  — formats the final result
    */
-  async run(input: InputHandlerInput, emitMessage?: (message: Message) => Promise<void>): Promise<string> {
+  async run(input: InputHandlerInput): Promise<InputHandlerOutput> {
 
     const all = loadConfig(BasePipeline.configPath) || {};
     const config = (this.name && all && all[this.name]) || {};
 
     const ingested = await this.inputHandler.handle(input);
-    const managed = await this.contextManager.manage(ingested, config['contextManager'] || {});
-    const executed = await this.actionHandler.execute(managed.cleanText);
-    const result = await this.outputHandler.output(executed);
+    const contextManagerOutput = await this.contextManager.manage(ingested, config['contextManager'] || {});
+    const actionHandlerOutput = await this.actionHandler.execute(contextManagerOutput.cleanText);
+    const pipelineResult = await this.outputHandler.output(actionHandlerOutput);
 
-    return result;
+    return contextManagerOutput;
   }
 }

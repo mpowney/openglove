@@ -27,13 +27,19 @@ export class DefaultContextManager extends BaseContextManager {
 
     const planningPrompt = new PromptTemplate(config.planningPromptTemplate || 'context-managers/DefaultContextManager-skill-planning.txt');
     if (config.planningModel && config.planningModel.type) {
+      
       const availableSkillsInfo = await Promise.all(availableSkills.map( skill => skill.getInfo() ));
       planningPrompt.setPlaceholders({ "skills-list": availableSkillsInfo.map( info => `- ${info.name}: ${info.description}`).join("\n") });
       planningPrompt.setPlaceholders({ "input": input.cleanText });
       this.planningModel = await BaseGenerativeModel.require(config.planningModel.type, config.planningModel);
+      
       if (this.planningModel) {
+
+        const renderedPlanningPrompt = await planningPrompt.render();
+        this.emitContextPrompt(renderedPlanningPrompt);
         const response = await this.planningModel.predict(await planningPrompt.render());
         if (response.response) {
+          this.emitContextResponse(response);
           response.response.split('\n').map((line: string) => line.trim()).filter((line: string) => line.length > 0).forEach((line: string) => this.addProposedToolName(line));
         }
         logger.verbose('Planning model response for context management:', { response });
