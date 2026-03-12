@@ -3,6 +3,7 @@ import { Logger } from '../utils/Logger';
 import { containsSecrets, getSecretCount } from '../utils/Secrets';
 import { loadConfig } from '../utils/Config';
 import * as path from 'path';
+import * as fs from 'fs';
 
 export type ToolContext = {
   agentId?: string;
@@ -18,33 +19,61 @@ export abstract class BaseTool {
   description?: string;
   parameterSchema?: string;
   tags: string[];
-  /** Config object loaded from skills.json (by `name`) */
+  /** Config object loaded from tools.json (by `name`) */
   config: Record<string, any>;
-  /** Optional skill runner for executing logic before/after skill execution */
-  protected skillRunner: BaseToolRunner | null = null;
+  /** Optional tool runner for executing logic before/after tool execution */
+  protected toolRunner: BaseToolRunner | null = null;
 
-  private static get skillsPathCandidates(): string[] {
+  private static get toolsPathCandidates(): string[] {
     const cwd = process.cwd();
 
-    const configPath = process.env.SKILLS_CONFIG_PATH
-      ? path.resolve(cwd, process.env.SKILLS_CONFIG_PATH)
+    const configPath = process.env.TOOLS_CONFIG_PATH
+      ? path.resolve(cwd, process.env.TOOLS_CONFIG_PATH)
       : undefined;
     const configDir = configPath ? path.dirname(configPath) : undefined;
 
     const mainToolsPath = require.main?.path
-      ? path.resolve(require.main.path, 'skills')
+      ? path.resolve(require.main.path, 'tools')
       : undefined;
 
-    return BaseTool.uniquePaths([
-      process.env.SKILLS_PATH,
+    const configuredPaths = BaseTool.uniquePaths([
+      process.env.TOOLS_PATH,
       mainToolsPath,
-      path.resolve(cwd, 'skills'),
-      path.resolve(cwd, 'src', 'skills'),
-      path.resolve(cwd, 'dist', 'skills'),
-      configDir ? path.resolve(configDir, 'skills') : undefined,
-      configDir ? path.resolve(configDir, 'src', 'skills') : undefined,
-      configDir ? path.resolve(configDir, 'dist', 'skills') : undefined,
+      path.resolve(cwd, 'tools'),
+      path.resolve(cwd, 'src', 'tools'),
+      path.resolve(cwd, 'dist', 'tools'),
+      configDir ? path.resolve(configDir, 'tools') : undefined,
+      configDir ? path.resolve(configDir, 'src', 'tools') : undefined,
+      configDir ? path.resolve(configDir, 'dist', 'tools') : undefined,
     ]);
+
+    return BaseTool.expandWithDirectSubdirectories(configuredPaths);
+  }
+
+  private static expandWithDirectSubdirectories(paths: string[]): string[] {
+    const expandedPaths: string[] = [];
+
+    for (const candidatePath of paths) {
+      expandedPaths.push(candidatePath);
+      expandedPaths.push(...BaseTool.getDirectSubdirectories(candidatePath));
+    }
+
+    return BaseTool.uniquePaths(expandedPaths);
+  }
+
+  private static getDirectSubdirectories(candidatePath: string): string[] {
+    try {
+      const stats = fs.statSync(candidatePath);
+      if (!stats.isDirectory()) return [];
+
+      // Include only one level of nested folders under each configured tools path.
+      return fs
+        .readdirSync(candidatePath, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => path.join(candidatePath, entry.name));
+    } catch {
+      return [];
+    }
   }
 
   private static uniquePaths(paths: Array<string | undefined>): string[] {
@@ -78,11 +107,11 @@ export abstract class BaseTool {
 
   static async require(name: string, config?: any): Promise<BaseTool> {
 
-    const basePaths = BaseTool.skillsPathCandidates;
+    const basePaths = BaseTool.toolsPathCandidates;
 
     for (const basePath of basePaths) {
       try {
-        // Try to load from skills/index first.
+        // Try to load from tools/index first.
         const index = await BaseTool.importFromCandidates(
           BaseTool.moduleSpecifiers(path.join(basePath, 'index')).concat(
             BaseTool.moduleSpecifiers(basePath)
@@ -90,7 +119,7 @@ export abstract class BaseTool {
         );
         let Ctor = index?.[name];
 
-        // If not found in index, try loading from individual skill file.
+        // If not found in index, try loading from individual tool file.
         if (!Ctor) {
           const mod = await BaseTool.importFromCandidates(
             BaseTool.moduleSpecifiers(path.join(basePath, name))
@@ -103,52 +132,52 @@ export abstract class BaseTool {
             const instance = new Ctor({ ...(config || {}), name });
             return instance;
           } catch (e) {
-            logger.error('Failed to register skill from config', e);
+            logger.error('Failed to register tool from config', e);
           }
         }
       } catch (e) {
-        logger.warn(`Failed to load skill module for ${name} from ${basePath}`, e);
+        logger.warn(`Failed to load tool module for ${name} from ${basePath}`, e);
       }
     }
 
     throw new Error(
-      `Tool ${name} not found in any configured skills path (${basePaths.join(', ')}) or is not a constructor`
+      `Tool ${name} not found in any configured tools path (${basePaths.join(', ')}) or is not a constructor`
     );
   }
 
-  /** Path used to load the skills config; env SKILLS_CONFIG_PATH or ./skills.json */
+  /** Path used to load the tools config; env TOOLS_CONFIG_PATH or ./tools.json */
   private static get configPath(): string {
-    return process.env.SKILLS_CONFIG_PATH ?? './skills.json';
+    return process.env.TOOLS_CONFIG_PATH ?? './tools.json';
   }
 
-  /** Base path for importing skill runners - can be overridden via env var */
+  /** Base path for importing tool runners - can be overridden via env var */
   private static get runnersPath(): string {
-    return process.env.SKILL_RUNNERS_PATH ?? '../runners';
+    return process.env.TOOL_RUNNERS_PATH ?? '../runners';
   }
 
   constructor(opts: { id?: string; name?: string; description?: string; parameterSchema?: string; tags?: string[] } = {}) {
-    this.id = opts.id ?? `skill-${Date.now()}`;
+    this.id = opts.id ?? `tool-${Date.now()}`;
     this.name = opts.name;
     this.description = opts.description;
     this.parameterSchema = opts.parameterSchema;
     this.tags = opts.tags ?? [];
-    // Attach config matching this skill's name (if any)
+    // Attach config matching this tool's name (if any)
     // Use shared loader so behaviour is consistent with other components
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const all = loadConfig(BaseTool.configPath) || {};
     const cfg = (this.name && all && all[this.name]) || {};
     this.config = cfg;
 
-    // Load skill runner from config if specified
+    // Load tool runner from config if specified
     this.loadToolRunnerFromConfig();
   }
 
   /**
-   * Dynamically load and instantiate a skill runner from config
+   * Dynamically load and instantiate a tool runner from config
    */
   private async loadToolRunnerFromConfig(): Promise<void> {
     try {
-      const runnerConfig = this.config?.runner ?? this.config?.skillRunner;
+      const runnerConfig = this.config?.runner ?? this.config?.toolRunner;
       if (!runnerConfig) return;
 
       const runnerType = typeof runnerConfig === 'string' 
@@ -162,28 +191,28 @@ export abstract class BaseTool {
 
       const runner = await BaseToolRunner.require(runnerType, runnerConfig.opts);
       this.setToolRunner(runner);
-      logger.log(`Attached skill runner ${runnerType} to skill ${this.name}`);
+      logger.log(`Attached tool runner ${runnerType} to tool ${this.name}`);
     } catch (err) {
-      logger.error(`Failed to load skill runner from config for skill ${this.name}: ${err}`);
+      logger.error(`Failed to load tool runner from config for tool ${this.name}: ${err}`);
     }
   }
 
   /**
-   * Set the skill runner for this skill
+   * Set the tool runner for this tool
    */
   setToolRunner(runner: BaseToolRunner | null): void {
-    this.skillRunner = runner;
+    this.toolRunner = runner;
   }
 
   /**
-   * Get the skill runner instance
+   * Get the tool runner instance
    */
   getToolRunner(): BaseToolRunner | null {
-    return this.skillRunner;
+    return this.toolRunner;
   }
 
   /**
-   * Execute a function with skill runner before/after hooks
+   * Execute a function with tool runner before/after hooks
    * Subclasses can use this to wrap their run() implementation
    */
   protected async executeWithRunner<T>(
@@ -192,33 +221,33 @@ export abstract class BaseTool {
     ctx?: ToolContext
   ): Promise<T> {
     // Execute before hook if runner is configured
-    await this.skillRunner?.runBeforeTool(this, input, ctx);
+    await this.toolRunner?.runBeforeTool(this, input, ctx);
 
     // Execute the actual function
     const result = await fn(input, ctx);
 
     // Execute after hook if runner is configured
-    await this.skillRunner?.runAfterTool(this, result, input, ctx);
+    await this.toolRunner?.runAfterTool(this, result, input, ctx);
 
     return result;
   }
 
-  /** Return true if this skill can handle the given input */
+  /** Return true if this tool can handle the given input */
   abstract canHandle(input: string, ctx?: ToolContext): boolean | Promise<boolean>;
 
-  /** Execute the skill and return a result object */
+  /** Execute the tool and return a result object */
   async run(input: any, ctx?: ToolContext): Promise<any> {
     // Check if input contains any registered secrets and warn if it does
     if (getSecretCount() > 0 && containsSecrets(input)) {
       logger.warn('Input contains secret values that should not be passed directly', {
-        skillId: this.id,
-        skillName: this.name
+        toolId: this.id,
+        toolName: this.name
       });
       throw new Error('Input contains secret values that should not be passed directly');
     }
 
-    if (this.skillRunner) {
-      logger.verbose('Executing skill with runner', { skillId: this.id, skillName: this.name });
+    if (this.toolRunner) {
+      logger.verbose('Executing tool with runner', { toolId: this.id, toolName: this.name });
       return await this.executeWithRunner(
         async (input: any, ctx?: ToolContext) => {
           return await this.runTool(input, ctx);
@@ -227,7 +256,7 @@ export abstract class BaseTool {
         ctx
       );
     } else {
-      logger.verbose('Executing skill without runner', { skillId: this.id, skillName: this.name });
+      logger.verbose('Executing tool without runner', { toolId: this.id, toolName: this.name });
       return await this.runTool(input, ctx);
     }
   }

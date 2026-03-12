@@ -6,7 +6,7 @@ const logger = new Logger('RinseAndRepeatRunner');
 
 /**
  * RinseAndRepeatRunner initializes a language model and uses it before executing WebBrowserTool.
- * Configuration comes from skillRunner.json with overrides applied on top of models.json.
+ * Configuration comes from runner.json with overrides applied on top of models.json.
  */
 export class RinseAndRepeatRunner extends BaseToolRunner {
   private model: BaseGenerativeModel | null = null;
@@ -14,24 +14,24 @@ export class RinseAndRepeatRunner extends BaseToolRunner {
 
   constructor(opts: any) {
     super();
-    this.configDir = process.cwd(); // Set config directory to current working directory to find skillRunner.json
+    this.configDir = process.cwd(); // Set config directory to current working directory to find runner.json
   }
 
-  async runBeforeTool(skill: BaseTool, input: any, _ctx?: ToolContext): Promise<void> {
+  async runBeforeTool(tool: BaseTool, input: any, _ctx?: ToolContext): Promise<void> {
     try {
-      // Get skill info (name and description)
-      const skillInfo = await skill.getInfo();
-      const skillName = skillInfo.name || 'unknown';
-      const skillDescription = skillInfo.description || 'No description available';
-      const skillParamSchema = skillInfo.parameterSchema || '{}';
+      // Get tool info (name and description)
+      const toolInfo = await tool.getInfo();
+      const toolName = toolInfo.name || 'unknown';
+      const toolDescription = toolInfo.description || 'No description available';
+      const toolParamSchema = toolInfo.parameterSchema || '{}';
 
       // Load configuration
-      const skillRunnerConfig = this.loadToolRunnerConfig();
+      const toolRunnerConfig = this.loadToolRunnerConfig();
       const modelsConfig = this.loadModelsConfig();
 
-      const runBeforeModelConfig = skillRunnerConfig?.RinseAndRepeatRunner?.runBeforeModel;
+      const runBeforeModelConfig = toolRunnerConfig?.RinseAndRepeatRunner?.runBeforeModel;
       if (!runBeforeModelConfig) {
-        throw new Error('No runBeforeModel configuration found in skillRunner.json');
+        throw new Error('No runBeforeModel configuration found in runner.json');
       }
 
       // Get the model name (first key in runBeforeModel)
@@ -48,11 +48,11 @@ export class RinseAndRepeatRunner extends BaseToolRunner {
       // Extract string representation of input for the prompt
       const inputStr = typeof input === 'object' ? JSON.stringify(input) : String(input);
 
-      let modelInput = this.modelConfig.prompt || `You are a system agent helping to execute a defined skill called {skill-name}.  The skill is described as follows: {skill-description}. The skill accepts parameters as a JSON object with the following schema: {skill-parameters-schema}.  Using the following user input, determine the appropriate parameters to pass to the skill.  Respond with only a JSON object containing the parameters, and no other text. User input: {input}`;
+      let modelInput = this.modelConfig.prompt || `You are a system agent helping to execute a defined tool called {tool-name}.  The tool is described as follows: {tool-description}. The tool accepts parameters as a JSON object with the following schema: {tool-parameters-schema}.  Using the following user input, determine the appropriate parameters to pass to the tool.  Respond with only a JSON object containing the parameters, and no other text. User input: {input}`;
       modelInput = modelInput.replace('{input}', inputStr);
-      modelInput = modelInput.replace('{skill-name}', skillName);
-      modelInput = modelInput.replace('{skill-description}', skillDescription);
-      modelInput = modelInput.replace('{skill-parameters-schema}', skillParamSchema);
+      modelInput = modelInput.replace('{tool-name}', toolName);
+      modelInput = modelInput.replace('{tool-description}', toolDescription);
+      modelInput = modelInput.replace('{tool-parameters-schema}', toolParamSchema);
       
       // Instantiate the model
       this.model = await BaseGenerativeModel.require(modelName, this.modelConfig);

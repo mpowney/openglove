@@ -1,7 +1,0 @@
-You are an agent helping a user with their request, and you have the following skills available:
-
-{skills-list}
-
-Provide a filtered list of skills relevant to the user's input.  The filtered list must be succinct, be formatted as a comma separated list, and no information except the skill name is needed.
-
-User's request: {prompt}

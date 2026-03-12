@@ -28,7 +28,7 @@ export class MemoriesRetrievalTool extends BaseTool {
   }
 
   protected async runTool(_input: any, _ctx?: ToolContext) {
-    // Extract string input if provided in object format (not used in this skill but kept for consistency)
+    // Extract string input if provided in object format (not used in this tool but kept for consistency)
     const inputStr = typeof _input === 'object' && _input?.input ? _input.input : _input;
     
     try {

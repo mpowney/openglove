@@ -4,12 +4,12 @@ import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
 
-import { RemoteTool } from '../../src/skills/RemoteTool';
+import { RemoteTool } from '../../src/tools/RemoteTool';
 import { classNameToSocketName } from '@openglove/base';
 
 const SOCKET_DIR = '/tmp';
-const SKILL_NAME = 'WebBrowserTool';
-const SOCKET_NAME = classNameToSocketName(SKILL_NAME);
+const TOOL_NAME = 'WebBrowserTool';
+const SOCKET_NAME = classNameToSocketName(TOOL_NAME);
 const SOCKET_PATH = path.join(SOCKET_DIR, `${SOCKET_NAME}.sock`);
 
 jest.setTimeout(60000);
@@ -58,11 +58,11 @@ describe('WebBrowserTool socket integration', () => {
         `⚠️  WebBrowserTool socket server is not running at ${SOCKET_PATH}\n` +
         `\n` +
         `To start the server, run in a separate terminal:\n` +
-        `  cd packages/skill-web-browser\n` +
+        `  cd packages/tool-web-browser\n` +
         `  pnpm dev-socket\n` +
         `\n` +
         `or after building:\n` +
-        `  cd packages/skill-web-browser\n` +
+        `  cd packages/tool-web-browser\n` +
         `  pnpm socket\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
       );
@@ -77,12 +77,12 @@ describe('WebBrowserTool socket integration', () => {
       return;
     }
 
-    const client = new RemoteTool(SKILL_NAME, SOCKET_DIR);
+    const client = new RemoteTool(TOOL_NAME, SOCKET_DIR);
 
     const info = await client.getInfo();
 
     expect(info).toBeDefined();
-    expect(info.name).toBe(SKILL_NAME);
+    expect(info.name).toBe(TOOL_NAME);
     expect(info.description).toBeDefined();
     expect(Array.isArray(info.tags)).toBe(true);
   });
@@ -93,7 +93,7 @@ describe('WebBrowserTool socket integration', () => {
       return;
     }
 
-    const client = new RemoteTool(SKILL_NAME, SOCKET_DIR);
+    const client = new RemoteTool(TOOL_NAME, SOCKET_DIR);
 
     const canHandleTrue = await client.canHandle(
       'browse to https://example.com'
@@ -110,7 +110,7 @@ describe('WebBrowserTool socket integration', () => {
       return;
     }
 
-    const client = new RemoteTool(SKILL_NAME, SOCKET_DIR);
+    const client = new RemoteTool(TOOL_NAME, SOCKET_DIR);
 
     const result = await client.run({
         url: 'https://example.com',

@@ -17,7 +17,7 @@ export abstract class BaseAgent {
   config: Record<string, any> | null = null;
 
   // Tools that this agent can use
-  protected skills: BaseTool[] = [];
+  protected tools: BaseTool[] = [];
 
   // Channels attached to this agent
   protected channels: BaseChannel[] = [];
@@ -42,69 +42,69 @@ export abstract class BaseAgent {
     }
 
     if (this.config) {
-      // If config defines skills, instantiate and register them
+      // If config defines tools, instantiate and register them
       try {
-        const skcfg = this.config.skills;
+        const skcfg = this.config.tools;
         if (skcfg.local && Array.isArray(skcfg.local)) {
-          for (const skill of skcfg.local) {
+          for (const tool of skcfg.local) {
             try {
               let inst: BaseTool | null = null;
               // require an exact class/module name match for security/clarity
-              if (skill) {
+              if (tool) {
                 (async () => {
-                  const instance = await BaseTool.require(skill, { name: skill });
+                  const instance = await BaseTool.require(tool, { name: tool });
                   if (instance) this.registerTool(instance);
                 })();
 
                 // perform dynamic import asynchronously and register when ready
                 // (async () => {
                 //   try {
-                //     // Try to load from skills/index.ts first
-                //     const skillsIndex: any = await import(/* webpackIgnore: true */ `../skills`);
-                //     let Ctor = skillsIndex[skill];
+                //     // Try to load from tools/index.ts first
+                //     const toolsIndex: any = await import(/* webpackIgnore: true */ `../tools`);
+                //     let Ctor = toolsIndex[tool];
                     
-                //     // If not found in index, try loading from individual skill file
+                //     // If not found in index, try loading from individual tool file
                 //     if (!Ctor) {
-                //       const mod = await import(/* webpackIgnore: true */ `../skills/${skill}`);
-                //       Ctor = (mod && (mod.default ?? mod[skill])) as any;
+                //       const mod = await import(/* webpackIgnore: true */ `../tools/${tool}`);
+                //       Ctor = (mod && (mod.default ?? mod[tool])) as any;
                 //     }
                     
                 //     if (typeof Ctor === 'function') {
                 //       try {
-                //         const instance = new Ctor({ ...(this.config?.skillsConfig?.[skill] || {}), name: skill });
+                //         const instance = new Ctor({ ...(this.config?.toolsConfig?.[tool] || {}), name: tool });
                 //         this.registerTool(instance);
                 //       } catch (e) {
-                //         logger.error('Failed to register skill from config', e);
+                //         logger.error('Failed to register tool from config', e);
                 //       }
                 //     }
                 //   } catch (e) {
-                //     logger.warn(`Failed to load skill module for ${skill}`, e);
+                //     logger.warn(`Failed to load tool module for ${tool}`, e);
                 //   }
                 // })();
               }
               // if (inst) this.registerTool(inst);
             } catch (e) {
-              logger.warn('Failed to instantiate skill from config', { error: e instanceof Error ? e.message : String(e) });
-              // ignore individual skill instantiation errors
+              logger.warn('Failed to instantiate tool from config', { error: e instanceof Error ? e.message : String(e) });
+              // ignore individual tool instantiation errors
             }
           }
         }
         if (skcfg.socket && Array.isArray(skcfg.socket)) {
-          for (const skill of skcfg.socket) {
+          for (const tool of skcfg.socket) {
             try {
               (async () => {
-                const instance = new (await import(/* webpackIgnore: true */ `../skills/RemoteTool`)).RemoteTool(skill, this.config?.socket);
+                const instance = new (await import(/* webpackIgnore: true */ `../tools/RemoteTool`)).RemoteTool(tool, this.config?.socket);
                 this.registerTool(instance);
-              })().catch(e => logger.warn('Failed to instantiate remote socket skill from config', { error: e instanceof Error ? e.message : String(e) }));
-                // ignore individual skill instantiation errors
+              })().catch(e => logger.warn('Failed to instantiate remote socket tool from config', { error: e instanceof Error ? e.message : String(e) }));
+                // ignore individual tool instantiation errors
             } catch (e) {
-              logger.warn('Failed to instantiate remote socket skill from config', { error: e instanceof Error ? e.message : String(e) });
-              // ignore individual skill instantiation errors
+              logger.warn('Failed to instantiate remote socket tool from config', { error: e instanceof Error ? e.message : String(e) });
+              // ignore individual tool instantiation errors
             }
           }
         }
       } catch (e) {
-        logger.warn('Failed to load skills from config', { error: e instanceof Error ? e.message : String(e) });
+        logger.warn('Failed to load tools from config', { error: e instanceof Error ? e.message : String(e) });
         // ignore
       }
 
@@ -129,17 +129,17 @@ export abstract class BaseAgent {
     }
   }
 
-  /** Register a skill with the agent */
-  registerTool(skill: BaseTool) {
-    this.skills.push(skill);
+  /** Register a tool with the agent */
+  registerTool(tool: BaseTool) {
+    this.tools.push(tool);
   }
-  unregisterTool(skill: BaseTool) {
-    this.skills = this.skills.filter(s => s.id !== skill.id);
+  unregisterTool(tool: BaseTool) {
+    this.tools = this.tools.filter(s => s.id !== tool.id);
   }
 
-  /** Find a skill that can handle the input (first match) */
+  /** Find a tool that can handle the input (first match) */
   async findToolFor(input: string, ctx?: ToolContext): Promise<BaseTool | undefined> {
-    for (const s of this.skills) {
+    for (const s of this.tools) {
       const ok = await s.canHandle(input, ctx);
       if (ok) return s;
     }
@@ -164,11 +164,11 @@ export abstract class BaseAgent {
     this.channelHandlers.delete(channel);
   }
 
-  /** Run the matching skill if any */
+  /** Run the matching tool if any */
   async runTool(input: string, ctx: ToolContext = {}): Promise<any | undefined> {
-    const skill = await this.findToolFor(input, ctx);
-    if (!skill) return undefined;
-    return skill.run(input, { ...ctx, agentId: this.id, model: this.model });
+    const tool = await this.findToolFor(input, ctx);
+    if (!tool) return undefined;
+    return tool.run(input, { ...ctx, agentId: this.id, model: this.model });
   }
 
   /** Decide on a plan (e.g., build a prompt or pipeline) */
@@ -179,9 +179,9 @@ export abstract class BaseAgent {
 
   /** High-level convenience runner */
   async run(input: any): Promise<any> {
-    // Tool-first: if a skill can handle the input, run it
-    const skillResult = await this.runTool(String(input));
-    if (skillResult !== undefined) return skillResult;
+    // Tool-first: if a tool can handle the input, run it
+    const toolResult = await this.runTool(String(input));
+    if (toolResult !== undefined) return toolResult;
 
     const prompt = await this.buildPrompt(input);
     const result = await this.act(prompt  );

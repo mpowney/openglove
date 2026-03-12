@@ -3,9 +3,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { MemoriesIndexTool } from '../../src/skills/MemoriesIndexTool';
-import { MemoriesKeepTool } from '../../src/skills/MemoriesKeepTool';
-import { MemoriesRetrievalTool } from '../../src/skills/MemoriesRetrievalTool';
+import { MemoriesIndexTool } from '../../src/tools/MemoriesIndexTool';
+import { MemoriesKeepTool } from '../../src/tools/MemoriesKeepTool';
+import { MemoriesRetrievalTool } from '../../src/tools/MemoriesRetrievalTool';
 import { BaseEmbeddingsModel } from '../../src/models';
 import { FilesystemEmbeddingsIndex } from '../../src/utils/embeddings';
 
@@ -65,35 +65,35 @@ describe('Memory Tools', () => {
   });
 
   describe('MemoriesIndexTool', () => {
-    let skill: MemoriesIndexTool;
+    let tool: MemoriesIndexTool;
 
     beforeEach(() => {
-      skill = new MemoriesIndexTool();
+      tool = new MemoriesIndexTool();
     });
 
     describe('canHandle', () => {
       it('should handle "index memory" input', async () => {
-        const result = await skill.canHandle('index memory');
+        const result = await tool.canHandle('index memory');
         expect(result).toBe(true);
       });
 
       it('should handle "reindex memory" input', async () => {
-        const result = await skill.canHandle('reindex memory');
+        const result = await tool.canHandle('reindex memory');
         expect(result).toBe(true);
       });
 
       it('should handle input with "index memory" in mixed case', async () => {
-        const result = await skill.canHandle('Please INDEX MEMORY for me');
+        const result = await tool.canHandle('Please INDEX MEMORY for me');
         expect(result).toBe(true);
       });
 
       it('should not handle unrelated input', async () => {
-        const result = await skill.canHandle('what is the weather');
+        const result = await tool.canHandle('what is the weather');
         expect(result).toBe(false);
       });
 
       it('should not handle empty input', async () => {
-        const result = await skill.canHandle('');
+        const result = await tool.canHandle('');
         expect(result).toBe(false);
       });
     });
@@ -114,7 +114,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        const result = await skill.run('index memories');
+        const result = await tool.run('index memories');
 
         expect(result.type).toBe('memoriesIndex');
         expect(result.success).toBe(true);
@@ -135,7 +135,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        await skill.run('index memories');
+        await tool.run('index memories');
 
         expect(mockFs.mkdirSync).toHaveBeenCalledWith(
           expect.stringContaining('memories'),
@@ -155,7 +155,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        const result = await skill.run('index memories');
+        const result = await tool.run('index memories');
 
         expect(result.success).toBe(false);
         expect(result.message).toBe('Failed to index memories');
@@ -173,7 +173,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        const result = await skill.run('index memories');
+        const result = await tool.run('index memories');
 
         expect(result.success).toBe(true);
       });
@@ -190,7 +190,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        const result = await skill.run({ input: 'index memories' });
+        const result = await tool.run({ input: 'index memories' });
 
         expect(result.success).toBe(true);
       });
@@ -198,10 +198,10 @@ describe('Memory Tools', () => {
   });
 
   describe('MemoriesKeepTool', () => {
-    let skill: MemoriesKeepTool;
+    let tool: MemoriesKeepTool;
 
     beforeEach(() => {
-      skill = new MemoriesKeepTool();
+      tool = new MemoriesKeepTool();
       jest.useFakeTimers();
       jest.setSystemTime(new Date('2026-03-05T10:30:45'));
     });
@@ -212,37 +212,37 @@ describe('Memory Tools', () => {
 
     describe('canHandle', () => {
       it('should handle "remember" input', async () => {
-        const result = await skill.canHandle('remember to buy groceries');
+        const result = await tool.canHandle('remember to buy groceries');
         expect(result).toBe(true);
       });
 
       it('should handle "memorize" input', async () => {
-        const result = await skill.canHandle('memorize this fact');
+        const result = await tool.canHandle('memorize this fact');
         expect(result).toBe(true);
       });
 
       it('should handle "keep in mind" input', async () => {
-        const result = await skill.canHandle('keep in mind the deadline');
+        const result = await tool.canHandle('keep in mind the deadline');
         expect(result).toBe(true);
       });
 
       it('should handle "store this" input', async () => {
-        const result = await skill.canHandle('store this information');
+        const result = await tool.canHandle('store this information');
         expect(result).toBe(true);
       });
 
       it('should handle "save this memory" input', async () => {
-        const result = await skill.canHandle('save this memory for later');
+        const result = await tool.canHandle('save this memory for later');
         expect(result).toBe(true);
       });
 
       it('should handle "note this" input', async () => {
-        const result = await skill.canHandle('note this down');
+        const result = await tool.canHandle('note this down');
         expect(result).toBe(true);
       });
 
       it('should not handle unrelated input', async () => {
-        const result = await skill.canHandle('what time is it');
+        const result = await tool.canHandle('what time is it');
         expect(result).toBe(false);
       });
     });
@@ -262,7 +262,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        const result = await skill.run('Remember to call mom');
+        const result = await tool.run('Remember to call mom');
 
         expect(result.type).toBe('memoryKept');
         expect(result.success).toBe(true);
@@ -285,7 +285,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        const result = await skill.run('New memory to add');
+        const result = await tool.run('New memory to add');
 
         expect(result.success).toBe(true);
         expect(mockFs.writeFileSync).toHaveBeenCalledWith(
@@ -309,7 +309,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        await skill.run('Test memory');
+        await tool.run('Test memory');
 
         expect(mockFs.writeFileSync).toHaveBeenCalledWith(
           expect.any(String),
@@ -332,7 +332,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        const result = await skill.run({ input: 'Remember this' });
+        const result = await tool.run({ input: 'Remember this' });
 
         expect(result.success).toBe(true);
         expect(mockFs.writeFileSync).toHaveBeenCalledWith(
@@ -348,7 +348,7 @@ describe('Memory Tools', () => {
           throw new Error('Write failed');
         });
 
-        const result = await skill.run('Test memory');
+        const result = await tool.run('Test memory');
 
         expect(result.success).toBe(false);
         expect(result.message).toBe('Failed to store memory');
@@ -369,7 +369,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        await skill.run('Memory content');
+        await tool.run('Memory content');
 
         expect(mockIndexer.index).toHaveBeenCalled();
       });
@@ -377,45 +377,45 @@ describe('Memory Tools', () => {
   });
 
   describe('MemoriesRetrievalTool', () => {
-    let skill: MemoriesRetrievalTool;
+    let tool: MemoriesRetrievalTool;
 
     beforeEach(() => {
-      skill = new MemoriesRetrievalTool();
+      tool = new MemoriesRetrievalTool();
     });
 
     describe('canHandle', () => {
       it('should handle "memories" input', async () => {
-        const result = await skill.canHandle('what memories do I have');
+        const result = await tool.canHandle('what memories do I have');
         expect(result).toBe(true);
       });
 
       it('should handle "recall" input', async () => {
-        const result = await skill.canHandle('can you recall my data');
+        const result = await tool.canHandle('can you recall my data');
         expect(result).toBe(true);
       });
 
       it('should handle "remember" input', async () => {
-        const result = await skill.canHandle('do you remember');
+        const result = await tool.canHandle('do you remember');
         expect(result).toBe(true);
       });
 
       it('should handle "stored memories" input', async () => {
-        const result = await skill.canHandle('show stored memories');
+        const result = await tool.canHandle('show stored memories');
         expect(result).toBe(true);
       });
 
       it('should handle "my memories" input', async () => {
-        const result = await skill.canHandle('my memories');
+        const result = await tool.canHandle('my memories');
         expect(result).toBe(true);
       });
 
       it('should handle "what do you remember" input', async () => {
-        const result = await skill.canHandle('what do you remember about me');
+        const result = await tool.canHandle('what do you remember about me');
         expect(result).toBe(true);
       });
 
       it('should not handle unrelated input', async () => {
-        const result = await skill.canHandle('what is the capital of France');
+        const result = await tool.canHandle('what is the capital of France');
         expect(result).toBe(false);
       });
     });
@@ -424,7 +424,7 @@ describe('Memory Tools', () => {
       it('should return empty memories if directory does not exist', async () => {
         mockFs.existsSync.mockReturnValue(false);
 
-        const result = await skill.run('');
+        const result = await tool.run('');
 
         expect(result.type).toBe('memories');
         expect(result.success).toBe(true);
@@ -438,7 +438,7 @@ describe('Memory Tools', () => {
         mockFs.readdirSync.mockReturnValue(['2026-03-04.md', '2026-03-05.md'] as any);
         mockFs.readFileSync.mockReturnValue('Memory content');
 
-        const result = await skill.run('');
+        const result = await tool.run('');
 
         expect(result.success).toBe(true);
         expect(result.memories.length).toBe(2);
@@ -452,7 +452,7 @@ describe('Memory Tools', () => {
         );
         mockFs.readFileSync.mockReturnValue('Memory content');
 
-        const result = await skill.run('');
+        const result = await tool.run('');
 
         expect(result.memories.length).toBe(2);
         expect(result.count).toBe(2);
@@ -475,7 +475,7 @@ describe('Memory Tools', () => {
 
         mockFs.readFileSync.mockReturnValue('Searched memory content');
 
-        const result = await skill.run('search query');
+        const result = await tool.run('search query');
 
         expect(result.success).toBe(true);
         expect(result.memories.length).toBe(1);
@@ -488,7 +488,7 @@ describe('Memory Tools', () => {
         mockFs.readdirSync.mockReturnValue(['2026-03-05.md'] as any);
         mockFs.readFileSync.mockReturnValue('Memory content');
 
-        const result = await skill.run({ input: '' });
+        const result = await tool.run({ input: '' });
 
         expect(result.success).toBe(true);
         expect(result.memories.length).toBe(1);
@@ -500,7 +500,7 @@ describe('Memory Tools', () => {
         const fileContent = '# Memories for Thursday 5 March 2026\n\nSome memory';
         mockFs.readFileSync.mockReturnValue(fileContent);
 
-        const result = await skill.run('');
+        const result = await tool.run('');
 
         expect(result.memories[0].filename).toBe('2026-03-05.md');
         expect(result.memories[0].content).toBe(fileContent);
@@ -513,7 +513,7 @@ describe('Memory Tools', () => {
           throw new Error('Read failed');
         });
 
-        const result = await skill.run('');
+        const result = await tool.run('');
 
         expect(result.success).toBe(true);
         expect(result.memories).toEqual([]);
@@ -525,7 +525,7 @@ describe('Memory Tools', () => {
           throw new Error('Fs error');
         });
 
-        const result = await skill.run('');
+        const result = await tool.run('');
 
         expect(result.success).toBe(false);
         expect(result.memories).toEqual([]);
@@ -546,7 +546,7 @@ describe('Memory Tools', () => {
           () => mockIndexer
         );
 
-        await skill.run('search term');
+        await tool.run('search term');
 
         expect(mockIndexer.search).toHaveBeenCalledWith('search term', 10);
       });

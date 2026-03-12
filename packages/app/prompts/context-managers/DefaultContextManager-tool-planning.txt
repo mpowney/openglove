@@ -1,0 +1,7 @@
+You are an agent helping a user with their request, and you have the following tools available:
+
+{tools-list}
+
+Provide a filtered list of tools relevant to the user's input.  The filtered list must be succinct, be formatted as a comma separated list, and no information except the tool name is needed.
+
+User's request: {prompt}

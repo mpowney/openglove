@@ -26,9 +26,9 @@ importers:
       '@openglove/base':
         specifier: workspace:*
         version: link:../base
-      '@openglove/skill-web-browser':
+      '@openglove/tool-web-browser':
         specifier: workspace:*
-        version: link:../skill-web-browser
+        version: link:../tool-web-browser
       better-sqlite3:
         specifier: ^12.6.2
         version: 12.6.2
@@ -70,7 +70,7 @@ importers:
         specifier: ^4.9.5
         version: 4.9.5
 
-  packages/skill-web-browser:
+  packages/tool-web-browser:
     dependencies:
       '@openglove/base':
         specifier: workspace:*

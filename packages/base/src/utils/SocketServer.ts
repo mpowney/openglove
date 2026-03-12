@@ -23,7 +23,7 @@ export type MethodHandler = (params?: unknown) => Promise<unknown>;
 
 /**
  * Convert class name to Unix socket naming convention (snake_case)
- * e.g., "WebBrowserTool" -> "web_browser_skill"
+ * e.g., "WebBrowserTool" -> "web_browser_tool"
  */
 export const classNameToSocketName = (className: string): string => {
   return className

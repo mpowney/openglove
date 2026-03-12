@@ -1,3 +1,3 @@
-import { WebBrowserTool } from './skills/WebBrowserTool';
+import { WebBrowserTool } from './tools/WebBrowserTool';
 
 export { WebBrowserTool };

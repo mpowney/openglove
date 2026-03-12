@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@openglove/base": "workspace:*",
-    "@openglove/skill-web-browser": "workspace:*",
+    "@openglove/tool-web-browser": "workspace:*",
     "better-sqlite3": "^12.6.2",
     "ws": "^8.19.0"
   }

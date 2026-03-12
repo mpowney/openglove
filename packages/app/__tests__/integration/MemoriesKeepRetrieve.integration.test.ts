@@ -4,8 +4,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import { MemoriesKeepTool } from '../../src/skills/MemoriesKeepTool';
-import { MemoriesRetrievalTool } from '../../src/skills/MemoriesRetrievalTool';
+import { MemoriesKeepTool } from '../../src/tools/MemoriesKeepTool';
+import { MemoriesRetrievalTool } from '../../src/tools/MemoriesRetrievalTool';
 import { fetchWithTimeout } from '../../src/utils/Fetch';
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
@@ -73,7 +73,7 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
 
   it('keeps a memory and retrieves it by search query', async () => {
     const previousCwd = process.cwd();
-    const previousToolsConfigPath = process.env.SKILLS_CONFIG_PATH;
+    const previousToolsConfigPath = process.env.TOOLS_CONFIG_PATH;
     const tmpRoot = await fs.promises.mkdtemp(
       path.join(os.tmpdir(), 'memories-keep-retrieve-integration-')
     );
@@ -83,10 +83,10 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
 
       const memoriesPath = path.join(tmpRoot, 'memories');
       const sqlitePath = path.join(tmpRoot, 'data', 'embeddings.db');
-      const skillsConfigPath = path.join(tmpRoot, 'skills.integration.json');
+      const toolsConfigPath = path.join(tmpRoot, 'tools.integration.json');
 
       await fs.promises.writeFile(
-        skillsConfigPath,
+        toolsConfigPath,
         JSON.stringify(
           {
             MemoriesKeepTool: { memoriesPath },
@@ -120,7 +120,7 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
         'utf-8'
       );
 
-      process.env.SKILLS_CONFIG_PATH = skillsConfigPath;
+      process.env.TOOLS_CONFIG_PATH = toolsConfigPath;
 
       const keepTool = new MemoriesKeepTool();
       const retrievalTool = new MemoriesRetrievalTool();
@@ -148,9 +148,9 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
       expect(found).toBe(true);
     } finally {
       if (previousToolsConfigPath === undefined) {
-        delete process.env.SKILLS_CONFIG_PATH;
+        delete process.env.TOOLS_CONFIG_PATH;
       } else {
-        process.env.SKILLS_CONFIG_PATH = previousToolsConfigPath;
+        process.env.TOOLS_CONFIG_PATH = previousToolsConfigPath;
       }
 
       process.chdir(previousCwd);

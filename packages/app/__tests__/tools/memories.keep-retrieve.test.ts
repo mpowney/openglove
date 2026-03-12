@@ -5,14 +5,14 @@ import * as os from 'os';
 import * as path from 'path';
 
 import { BaseEmbeddingsModel } from '../../src/models';
-import { MemoriesKeepTool } from '../../src/skills/MemoriesKeepTool';
-import { MemoriesRetrievalTool } from '../../src/skills/MemoriesRetrievalTool';
+import { MemoriesKeepTool } from '../../src/tools/MemoriesKeepTool';
+import { MemoriesRetrievalTool } from '../../src/tools/MemoriesRetrievalTool';
 import { FilesystemEmbeddingsIndex } from '../../src/utils/embeddings';
 
 describe('Memories keep and retrieve flow', () => {
   let tmpRoot: string;
   let memoriesDir: string;
-  let skillsConfigPath: string;
+  let toolsConfigPath: string;
   let previousToolsConfigPath: string | undefined;
 
   beforeEach(async () => {
@@ -20,10 +20,10 @@ describe('Memories keep and retrieve flow', () => {
       path.join(os.tmpdir(), 'memories-keep-retrieve-test-')
     );
     memoriesDir = path.join(tmpRoot, 'memories');
-    skillsConfigPath = path.join(tmpRoot, 'skills.test.json');
+    toolsConfigPath = path.join(tmpRoot, 'tools.test.json');
 
     await fs.promises.writeFile(
-      skillsConfigPath,
+      toolsConfigPath,
       JSON.stringify(
         {
           MemoriesKeepTool: {
@@ -39,8 +39,8 @@ describe('Memories keep and retrieve flow', () => {
       'utf-8'
     );
 
-    previousToolsConfigPath = process.env.SKILLS_CONFIG_PATH;
-    process.env.SKILLS_CONFIG_PATH = skillsConfigPath;
+    previousToolsConfigPath = process.env.TOOLS_CONFIG_PATH;
+    process.env.TOOLS_CONFIG_PATH = toolsConfigPath;
 
     const mockModel = {
       name: 'MockEmbeddingsModel',
@@ -59,9 +59,9 @@ describe('Memories keep and retrieve flow', () => {
     jest.restoreAllMocks();
 
     if (previousToolsConfigPath === undefined) {
-      delete process.env.SKILLS_CONFIG_PATH;
+      delete process.env.TOOLS_CONFIG_PATH;
     } else {
-      process.env.SKILLS_CONFIG_PATH = previousToolsConfigPath;
+      process.env.TOOLS_CONFIG_PATH = previousToolsConfigPath;
     }
 
     await fs.promises.rm(tmpRoot, { recursive: true, force: true });

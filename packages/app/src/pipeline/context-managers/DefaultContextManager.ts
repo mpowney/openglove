@@ -3,7 +3,7 @@ import { BaseGenerativeModel } from '../../models/generative';
 import { PromptTemplate } from '../../utils/prompts';
 import { InputHandlerOutput } from '../input-handlers';
 import { BaseContextManager } from './BaseContextManager';
-import { RemoteTool } from '../../skills';
+import { RemoteTool } from '../../tools';
 
 const logger = new Logger('DefaultContextManager');
 
@@ -14,22 +14,22 @@ export class DefaultContextManager extends BaseContextManager {
   async manage(input: InputHandlerOutput, config: Record<string, any>): Promise<InputHandlerOutput> {
 
     const availableTools: BaseTool[] = 
-    Array.isArray(config.availableTools) ? await Promise.all(config.availableTools.map( async skillName => {
-      return await BaseTool.require(skillName);
+    Array.isArray(config.availableTools) ? await Promise.all(config.availableTools.map( async toolName => {
+      return await BaseTool.require(toolName);
     })) : [];
     
-    Array.isArray(config.availableRemoteTools) ? config.availableRemoteTools.forEach( async skillName => {
-      const remoteTool = new RemoteTool(skillName);
+    Array.isArray(config.availableRemoteTools) ? config.availableRemoteTools.forEach( async toolName => {
+      const remoteTool = new RemoteTool(toolName);
       if (remoteTool) {
         availableTools.push(remoteTool);
       }
     }) : null;
 
-    const planningPrompt = new PromptTemplate(config.planningPromptTemplate || 'context-managers/DefaultContextManager-skill-planning.txt');
+    const planningPrompt = new PromptTemplate(config.planningPromptTemplate || 'context-managers/DefaultContextManager-tool-planning.txt');
     if (config.planningModel && config.planningModel.type) {
       
-      const availableToolsInfo = await Promise.all(availableTools.map( skill => skill.getInfo() ));
-      planningPrompt.setPlaceholders({ "skills-list": availableToolsInfo.map( info => `- ${info.name}: ${info.description}`).join("\n") });
+      const availableToolsInfo = await Promise.all(availableTools.map( tool => tool.getInfo() ));
+      planningPrompt.setPlaceholders({ "tools-list": availableToolsInfo.map( info => `- ${info.name}: ${info.description}`).join("\n") });
       planningPrompt.setPlaceholders({ "input": input.cleanText });
       this.planningModel = await BaseGenerativeModel.require(config.planningModel.type, config.planningModel);
       

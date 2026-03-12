@@ -9,7 +9,7 @@
       "maxTokens": 2048,
       "keepAlive": 600
     },
-    "skillsModel": {
+    "toolsModel": {
       "type": "OllamaGenerativeModel",
       "baseUrl": "{SECRET:ollama-base-url}",
       "model": "olmo-3:7b-instruct",
@@ -17,7 +17,7 @@
       "maxTokens": 16384,
       "keepAlive": 600
     },
-    "skills": { 
+    "tools": { 
       "local": [ "SearxngWebSearchTool", "TimeTool", "MemoriesRetrievalTool", "MemoriesKeepTool" ],
       "socket": [ "WebBrowserTool" ]
     },

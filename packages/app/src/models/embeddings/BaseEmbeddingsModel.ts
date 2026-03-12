@@ -22,7 +22,7 @@ export abstract class BaseEmbeddingsModel extends BaseModel {
       const index: any = await import(/* webpackIgnore: true */ `${basePath}`);
       let Ctor = index[name];
       
-      // If not found in index, try loading from individual skill file
+      // If not found in index, try loading from individual tool file
       if (!Ctor) {
         const mod = await import(/* webpackIgnore: true */ `${basePath}/${name}`);
         Ctor = (mod && (mod.default ?? mod[name])) as any;

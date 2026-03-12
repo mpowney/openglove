@@ -13,8 +13,8 @@ export class ChatAgent extends BaseAgent {
 
   history: Message[] = [];
   pipeline: DefaultPipeline = new DefaultPipeline({ emitMessage: this.emitMessage.bind(this) });
-  skillsModel?: BaseGenerativeModel; // Optional separate model for determining what skills to use, if not set the main model will be used
-  skillsPromptTemplate?: string = "You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of skills to those relevant to the user's input. Be succinct, and don't list irrelevant skills. User Input: {prompt}.\n\nTools: {skills-list}"; // Optional template for the prompt to determine skills, can be set in config
+  toolsModel?: BaseGenerativeModel; // Optional separate model for determining what tools to use, if not set the main model will be used
+  toolsPromptTemplate?: string = "You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of tools to those relevant to the user's input. Be succinct, and don't list irrelevant tools. User Input: {prompt}.\n\nTools: {tools-list}"; // Optional template for the prompt to determine tools, can be set in config
 
   constructor(model?: BaseGenerativeModel, opts: { id?: string; name?: string; role?: string } = {}) {
     super(model, opts);
@@ -59,24 +59,24 @@ export class ChatAgent extends BaseAgent {
       // ignore
     }
     try {
-      const skillsModelConfig = this.config?.skillsModel;
-      if (skillsModelConfig && typeof skillsModelConfig === 'object') {
+      const toolsModelConfig = this.config?.toolsModel;
+      if (toolsModelConfig && typeof toolsModelConfig === 'object') {
         // If no model is set, try to create one from the config
-        const modelType = skillsModelConfig.type;
+        const modelType = toolsModelConfig.type;
         if (modelType) {
           (async () => {
-            const model = await BaseGenerativeModel.require(modelType, skillsModelConfig).catch(e => {
-              logger.warn('Failed to instantiate skills model from config', { error: e instanceof Error ? e.message : String(e) });
+            const model = await BaseGenerativeModel.require(modelType, toolsModelConfig).catch(e => {
+              logger.warn('Failed to instantiate tools model from config', { error: e instanceof Error ? e.message : String(e) });
               return null;
             });
-            if (model) this.skillsModel = model;
+            if (model) this.toolsModel = model;
           })();
         }
       }
     } catch (e) {
-      logger.warn('Failed to instantiate skills model from config', { error: e instanceof Error ? e.message : String(e) });
+      logger.warn('Failed to instantiate tools model from config', { error: e instanceof Error ? e.message : String(e) });
     }
-    this.skillsPromptTemplate = this.config?.skillsPromptTemplate ?? this.skillsPromptTemplate;
+    this.toolsPromptTemplate = this.config?.toolsPromptTemplate ?? this.toolsPromptTemplate;
 
   }
 
@@ -145,64 +145,64 @@ export class ChatAgent extends BaseAgent {
     this.emitMessage(userMessage).catch(() => {});
     logger.verbose('User input received', { input: pipelineOutput });
 
-    // Use the skillsModel to determine what skills can handle this input
-    const skillsModel = this.skillsModel || this.model;
-    if (skillsModel) {
-      const promptTemplate = new PromptTemplate('find-skills.txt');
+    // Use the toolsModel to determine what tools can handle this input
+    const toolsModel = this.toolsModel || this.model;
+    if (toolsModel) {
+      const promptTemplate = new PromptTemplate('find-tools.txt');
       promptTemplate.setPlaceholders({ 'prompt': pipelineOutput.originalText || input });
-      promptTemplate.setPlaceholders({ 'skills-list': this.skills.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n') });
+      promptTemplate.setPlaceholders({ 'tools-list': this.tools.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n') });
 
-      const skillsPrompt = await promptTemplate.render();
-      // const skillsInfo = await Promise.all(this.skills.map(s => s.getInfo().catch(() => ({ name: s.name || 'Unknown', description: undefined, tags: [] }))));
-      // const skillsPrompt = this.skillsPromptTemplate?.replace('{prompt}', pipelineOutput).replace('{skills-list}', skillsInfo.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n'));
-      if (!skillsPrompt) {
-        logger.warn('No skills prompt template defined, skipping skills model step');
+      const toolsPrompt = await promptTemplate.render();
+      // const toolsInfo = await Promise.all(this.tools.map(s => s.getInfo().catch(() => ({ name: s.name || 'Unknown', description: undefined, tags: [] }))));
+      // const toolsPrompt = this.toolsPromptTemplate?.replace('{prompt}', pipelineOutput).replace('{tools-list}', toolsInfo.map(s => `* ${s.name} - ${s.description || 'No description'}`).join('\n'));
+      if (!toolsPrompt) {
+        logger.warn('No tools prompt template defined, skipping tools model step');
       } else {
-        const message = { role: 'system' as const, content: skillsPrompt, ts: Date.now(), type: 'end' };
+        const message = { role: 'system' as const, content: toolsPrompt, ts: Date.now(), type: 'end' };
         await this.emitMessage(message).catch(() => {});
-        logger.verbose('Running skills model to determine applicable skills with prompt', skillsPrompt);
+        logger.verbose('Running tools model to determine applicable tools with prompt', toolsPrompt);
         try {
-          const skillsResp = await skillsModel.predict(skillsPrompt);
-          const content = skillsResp.response || String(skillsResp);
+          const toolsResp = await toolsModel.predict(toolsPrompt);
+          const content = toolsResp.response || String(toolsResp);
           
           await this.emitMessage({ role: 'system' as const, content, ts: Date.now(), type: 'end' });
-          logger.verbose('skills model response', content);
+          logger.verbose('tools model response', content);
           
-          // Check for skill type matches in the response
+          // Check for tool type matches in the response
           const responseText = String(content).toLowerCase();
-          const skillTypeMatches = this.skills
-            .filter(skill => {
-              // Match skill name
-              if (skill.name && responseText.includes(skill.name.toLowerCase())) return true;
-              // Match skill tags
-              if (skill.tags && skill.tags.some(tag => responseText.includes(tag.toLowerCase()))) return true;
+          const toolTypeMatches = this.tools
+            .filter(tool => {
+              // Match tool name
+              if (tool.name && responseText.includes(tool.name.toLowerCase())) return true;
+              // Match tool tags
+              if (tool.tags && tool.tags.some(tag => responseText.includes(tag.toLowerCase()))) return true;
               return false;
             })
             .map(s => s.name);
           
-          if (skillTypeMatches.length > 0) {
-            logger.verbose('Matched skills from skills model', skillTypeMatches);
+          if (toolTypeMatches.length > 0) {
+            logger.verbose('Matched tools from tools model', toolTypeMatches);
 
-            for (const skillName of skillTypeMatches) {
-              const skill = this.skills.find(s => s.name === skillName);
-              if (!skill) continue;
-              // Run each matched skill and yield its result as a system message before the main model response
+            for (const toolName of toolTypeMatches) {
+              const tool = this.tools.find(t => t.name === toolName);
+              if (!tool) continue;
+              // Run each matched tool and yield its result as a system message before the main model response
               try {
-                const skillCtx: ToolContext = { agentId: this.id, model: this.model };
-                const skillResult = await skill.run(pipelineOutput, skillCtx);
-                if (skillResult !== undefined) {
-                  const content = typeof skillResult === 'string' ? skillResult : JSON.stringify(skillResult, null, 2);
+                const toolCtx: ToolContext = { agentId: this.id, model: this.model };
+                const toolResult = await tool.run(pipelineOutput, toolCtx);
+                if (toolResult !== undefined) {
+                  const content = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult, null, 2);
                   await this.emitMessage({ role: 'tool' as const, content: String(content), ts: Date.now(), type: 'end' });
                 }
               } catch (e) {
-                logger.warn(`Failed to run skill ${skillName}`, e);
+                logger.warn(`Failed to run tool ${toolName}`, e);
               }
             }
           } else {
-            logger.verbose('No skills matched from skills model response');
+            logger.verbose('No tools matched from tools model response');
           }
         } catch (e) {
-          logger.error('Failed to run skills model', { error: e, config: this.config?.skillsModel });
+          logger.error('Failed to run tools model', { error: e, config: this.config?.toolsModel });
         }
       }
     }
@@ -215,7 +215,7 @@ export class ChatAgent extends BaseAgent {
       return;
     }
 
-    // No skill handled it — build a plan and use the model.
+    // No tool handled it — build a plan and use the model.
     const plan = await this.buildPrompt();
     // Prefer a model streaming API if available
     const modelAny = this.model as any;

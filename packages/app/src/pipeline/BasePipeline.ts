@@ -25,7 +25,7 @@ export abstract class BasePipeline {
   name?: string = 'BasePipeline';
   
 
-  /** Path used to load the skills config; env PIPELINE_CONFIG_PATH or ./pipeline.json */
+  /** Path used to load the tools config; env PIPELINE_CONFIG_PATH or ./pipeline.json */
   private static get configPath(): string {
     return process.env.PIPELINE_CONFIG_PATH ?? './pipeline.json';
   }

@@ -1,36 +1,36 @@
 /**
- * Specialized test harness for skills
+ * Specialized test harness for tools
  */
 
 import { ComponentTestHarness, HarnessConfig } from './ComponentTestHarness';
 import { BaseTool } from '@openglove/base';
 
 export interface ToolTestConfig extends HarnessConfig {
-  skillName?: string;
+  toolName?: string;
   description?: string;
   tags?: string[];
 }
 
 export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
-  protected skillConfig: ToolTestConfig;
+  protected toolConfig: ToolTestConfig;
 
   constructor(
     ToolClass: new (opts?: any) => BaseTool,
     config: ToolTestConfig = {}
   ) {
     super(ToolClass, config);
-    this.skillConfig = { ...config };
+    this.toolConfig = { ...config };
   }
 
   /**
-   * Get component configuration for skill constructor
+   * Get component configuration for tool constructor
    */
   protected getComponentConfig(): Record<string, any> {
     return {
       ...super.getComponentConfig(),
-      name: this.skillConfig?.skillName,
-      description: this.skillConfig?.description,
-      tags: this.skillConfig?.tags
+      name: this.toolConfig?.toolName,
+      description: this.toolConfig?.description,
+      tags: this.toolConfig?.tags
     };
   }
 
@@ -39,11 +39,11 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
    */
   public async testCanHandle(input: string): Promise<boolean> {
     return this.executeTest(`canHandle: "${input}"`, async () => {
-      const skill = this.component as any;
-      if (!skill.canHandle) {
+      const tool = this.component as any;
+      if (!tool.canHandle) {
         throw new Error('Tool does not implement canHandle method');
       }
-      return await skill.canHandle(input);
+      return await tool.canHandle(input);
     }) as Promise<boolean>;
   }
 
@@ -53,11 +53,11 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
   public async testRun(input: any): Promise<any> {
     const inputStr = typeof input === 'string' ? input : JSON.stringify(input).substring(0, 30);
     return this.executeTest(`run: ${inputStr}...`, async () => {
-      const skill = this.component as any;
-      if (!skill.run) {
+      const tool = this.component as any;
+      if (!tool.run) {
         throw new Error('Tool does not implement run method');
       }
-      return await skill.run(input);
+      return await tool.run(input);
     });
   }
 
@@ -69,14 +69,14 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
     result?: any;
   } | null> {
     return this.executeTest(`canHandleAndRun: "${input}"`, async () => {
-      const skill = this.component as any;
+      const tool = this.component as any;
 
-      const canHandle = await skill.canHandle(input);
+      const canHandle = await tool.canHandle(input);
       if (!canHandle) {
         return { canHandle: false };
       }
 
-      const result = await skill.run(input);
+      const result = await tool.run(input);
       return {
         canHandle: true,
         result
@@ -85,18 +85,18 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
   }
 
   /**
-   * Test multiple inputs to verify skill handling
+   * Test multiple inputs to verify tool handling
    */
   public async testCanHandleMultiple(inputs: string[]): Promise<{
     input: string;
     canHandle: boolean;
   }[] | null> {
     return this.executeTest('canHandleMultiple', async () => {
-      const skill = this.component as any;
+      const tool = this.component as any;
       const results = [];
 
       for (const input of inputs) {
-        const canHandle = await skill.canHandle(input);
+        const canHandle = await tool.canHandle(input);
         results.push({ input, canHandle });
       }
 
@@ -109,16 +109,16 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
    */
   public async testGetInfo(): Promise<any> {
     return this.executeTest('getInfo', async () => {
-      const skill = this.component as any;
-      if (!skill.getInfo) {
+      const tool = this.component as any;
+      if (!tool.getInfo) {
         throw new Error('Tool does not implement getInfo method');
       }
-      return await skill.getInfo();
+      return await tool.getInfo();
     });
   }
 
   /**
-   * Test skill with success criteria
+   * Test tool with success criteria
    */
   public async testRunWithCriteria(
     input: any,
@@ -130,11 +130,11 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
   ): Promise<any> {
     const inputStr = typeof input === 'string' ? input : JSON.stringify(input).substring(0, 30);
     return this.executeTest(`runWithCriteria: ${inputStr}...`, async () => {
-      const skill = this.component as any;
-      if (!skill.run) {
+      const tool = this.component as any;
+      if (!tool.run) {
         throw new Error('Tool does not implement run method');
       }
-      const result = await skill.run(input);
+      const result = await tool.run(input);
 
       if (criteria.expectSuccess !== undefined) {
         if (
@@ -163,7 +163,7 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
   }
 
   /**
-   * Test skill error handling
+   * Test tool error handling
    */
   public async testErrorHandling(input: any): Promise<{
     error: boolean;
@@ -171,10 +171,10 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
     message?: string;
   } | null> {
     return this.executeTest('errorHandling', async () => {
-      const skill = this.component as any;
+      const tool = this.component as any;
 
       try {
-        const result = await skill.run(input);
+        const result = await tool.run(input);
         return {
           error: result?.success === false,
           success: result?.success === true,
@@ -195,12 +195,12 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
    */
   public async testRunSequence(inputs: any[]): Promise<any[] | null> {
     return this.executeTest('runSequence', async () => {
-      const skill = this.component as any;
+      const tool = this.component as any;
       const results = [];
 
       for (const input of inputs) {
         try {
-          const result = await skill.run(input);
+          const result = await tool.run(input);
           results.push({ input, result, error: null });
         } catch (error) {
           results.push({
@@ -216,21 +216,21 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
   }
 
   /**
-   * Get skill metadata convenience method
+   * Get tool metadata convenience method
    */
   public getToolName(): string | undefined {
     return (this.component as any).name;
   }
 
   /**
-   * Get skill description convenience method
+   * Get tool description convenience method
    */
   public getToolDescription(): string | undefined {
     return (this.component as any).description;
   }
 
   /**
-   * Verify skill implements required methods
+   * Verify tool implements required methods
    */
   public verifyToolInterface(): {
     hasCanHandle: boolean;
@@ -238,12 +238,12 @@ export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
     hasGetInfo: boolean;
     complete: boolean;
   } {
-    const skill = this.component as any;
+    const tool = this.component as any;
     return {
-      hasCanHandle: typeof skill.canHandle === 'function',
-      hasRun: typeof skill.run === 'function',
-      hasGetInfo: typeof skill.getInfo === 'function',
-      complete: typeof skill.canHandle === 'function' && typeof skill.run === 'function'
+      hasCanHandle: typeof tool.canHandle === 'function',
+      hasRun: typeof tool.run === 'function',
+      hasGetInfo: typeof tool.getInfo === 'function',
+      complete: typeof tool.canHandle === 'function' && typeof tool.run === 'function'
     };
   }
 }

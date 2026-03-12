@@ -4,8 +4,8 @@
  */
 
 import { ToolTestHarness } from '../harness';
-import { MemoriesKeepTool } from '../../src/skills/MemoriesKeepTool';
-import { skillFixtures } from '../fixtures/testData';
+import { MemoriesKeepTool } from '../../src/tools/MemoriesKeepTool';
+import { toolFixtures } from '../fixtures/testData';
 
 // Mock for unit tests
 jest.mock('fs');
@@ -65,7 +65,7 @@ describe('ToolTestHarness - MemoriesKeepTool Example', () => {
       harness.cleanup();
     });
 
-    it('should verify skill interface', () => {
+    it('should verify tool interface', () => {
       const verification = harness.verifyToolInterface();
       expect(verification.complete).toBe(true);
       expect(verification.hasCanHandle).toBe(true);
@@ -74,11 +74,11 @@ describe('ToolTestHarness - MemoriesKeepTool Example', () => {
 
     it('should test canHandle for multiple inputs using fixture', async () => {
       const results = await harness.testCanHandleMultiple(
-        skillFixtures.memoriesKeep.validInputs
+        toolFixtures.memoriesKeep.validInputs
       );
 
       if (results) {
-        expect(results).toHaveLength(skillFixtures.memoriesKeep.validInputs.length);
+        expect(results).toHaveLength(toolFixtures.memoriesKeep.validInputs.length);
         results.forEach(result => {
           expect(result.canHandle).toBe(true);
         });
@@ -87,7 +87,7 @@ describe('ToolTestHarness - MemoriesKeepTool Example', () => {
 
     it('should reject invalid inputs using fixture', async () => {
       const results = await harness.testCanHandleMultiple(
-        skillFixtures.memoriesKeep.invalidInputs
+        toolFixtures.memoriesKeep.invalidInputs
       );
 
       if (results) {
@@ -99,13 +99,13 @@ describe('ToolTestHarness - MemoriesKeepTool Example', () => {
       }
     });
 
-    it('should get skill info', async () => {
+    it('should get tool info', async () => {
       const info = await harness.testGetInfo();
       expect(info).toHaveProperty('name');
       expect(info).toHaveProperty('description');
     });
 
-    it('should run skill successfully with criteria', async () => {
+    it('should run tool successfully with criteria', async () => {
       const result = await harness.testRunWithCriteria('remember to code', {
         expectSuccess: true,
         expectType: 'memoryKept',

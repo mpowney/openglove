@@ -10,9 +10,9 @@ const logger = new Logger('RemoteTool');
 export class RemoteTool extends BaseTool {
   private socketPath: string;
 
-  constructor(skillName: string, socketDir: string = '/tmp') {
-    super({ name: skillName });
-    this.socketPath = path.join(socketDir, `${classNameToSocketName(skillName)}.sock`);
+  constructor(toolName: string, socketDir: string = '/tmp') {
+    super({ name: toolName });
+    this.socketPath = path.join(socketDir, `${classNameToSocketName(toolName)}.sock`);
   }
 
   async canHandle(_input: string): Promise<boolean> {

@@ -1,4 +1,4 @@
-import { BaseTool, ToolContext } from "./skills/BaseTool";
+import { BaseTool, ToolContext } from "./tools/BaseTool";
 import { loadConfig } from "./utils/Config";
 import { Logger } from "./utils/Logger";
 import { SocketServer, JSONRPCRequest, JSONRPCResponse, MethodHandler, classNameToSocketName } from "./utils/SocketServer";

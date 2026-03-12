@@ -9,7 +9,7 @@ const logger = new Logger('index');
 async function main() {
 //   const model = new LocalModel({}, { name: 'EchoModel', description: 'Simple echo model', version: '0.1' });
 //   const agent = new ChatAgent(model, { name: 'EchoAgent', role: 'assistant' });
-//   // Register example skills
+//   // Register example tools
 //   const timeTool = new TimeTool();
 //   (agent as any).registerTool(timeTool);
 //   // Register WebSearchTool with configurable base URL (SEARXNG_URL env var)
@@ -59,7 +59,7 @@ async function main() {
 
   // Create an agent backed by the Ollama model to integrate it into the agent flow
   // const agent = new ChatAgent(ollamaModel, { role: 'assistant' });
-  // register same skills on the ollamaAgent so it can use them
+  // register same tools on the ollamaAgent so it can use them
 //   (ollamaAgent as any).registerTool(timeTool);
 
   // try {

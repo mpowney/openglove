@@ -1,8 +1,8 @@
 /**
- * Common test fixtures for skills and models
+ * Common test fixtures for tools and models
  */
 
-export const skillFixtures = {
+export const toolFixtures = {
   memoriesKeep: {
     validInputs: [
       'remember to call mom',
@@ -143,7 +143,7 @@ export const integrationFixtures = {
   },
 
   successCriteria: {
-    skillRun: {
+    toolRun: {
       expectSuccess: true,
       expectFields: ['type', 'success', 'message']
     },
@@ -160,9 +160,9 @@ export const integrationFixtures = {
  * Example usage helper
  */
 export const exampleUsage = {
-  skill: `
+  tool: `
     import { ToolTestHarness } from '__tests__/harness';
-    import { MemoriesKeepTool } from 'src/skills/MemoriesKeepTool';
+    import { MemoriesKeepTool } from 'src/tools/MemoriesKeepTool';
     
     const harness = new ToolTestHarness(MemoriesKeepTool, { 
       mockMode: 'full' 
