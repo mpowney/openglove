@@ -1,17 +1,17 @@
-import { BaseSkill, loadConfig, Logger, SkillContext } from '@openglove/base';
+import { BaseTool, loadConfig, Logger, ToolContext } from '@openglove/base';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FilesystemEmbeddingsIndex } from '../utils/embeddings';
 import { BaseEmbeddingsModel } from '../models';
 
-const logger = new Logger('MemoriesKeepSkill');
+const logger = new Logger('MemoriesKeepTool');
 
-export class MemoriesKeepSkill extends BaseSkill {
+export class MemoriesKeepTool extends BaseTool {
   private memoriesPath: string;
 
   constructor(opts: { id?: string; name?: string; description?: string; tags?: string[] } = {}) {
     super({
-      name: opts.name ?? 'MemoriesKeepSkill',
+      name: opts.name ?? 'MemoriesKeepTool',
       description: opts.description ?? 'Stores and appends memories to daily markdown files',
       parameterSchema: '{ input: string }',
       tags: opts.tags ?? ['memories', 'store', 'keep', 'save memory']
@@ -27,7 +27,7 @@ export class MemoriesKeepSkill extends BaseSkill {
     return /\b(remember|memorize|memorise|keep in mind|store this|save this memory|note this)\b/.test(s);
   }
 
-  protected async runSkill(input: any, _ctx?: SkillContext) {
+  protected async runTool(input: any, _ctx?: ToolContext) {
     // Extract string input if provided in object format
     const inputStr = typeof input === 'object' && input?.input ? input.input : input;
     
@@ -66,7 +66,7 @@ export class MemoriesKeepSkill extends BaseSkill {
       // Write to file
       fs.writeFileSync(filePath, fileContent, 'utf-8');
 
-      const config = loadConfig('memoriesSkills.json');
+      const config = loadConfig('memoriesTools.json');
       const modelType = config?.modelType || 'OllamaEmbeddingsModel';
       const modelConfig = config?.modelConfig || {};
 

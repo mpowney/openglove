@@ -1,15 +1,15 @@
-import { MemoriesKeepSkill } from "./MemoriesKeepSkill";
-import { MemoriesRetrievalSkill } from "./MemoriesRetrievalSkill";
-import { TimeSkill } from "./TimeSkill";
-import { SearxngWebSearchSkill } from "./web-search/SearxngWebSearchSkill";
-import { BraveWebSearchSkill } from "./web-search/BraveWebSearchSkill";
-import { RemoteSkill } from "./RemoteSkill";
+import { MemoriesKeepTool } from "./MemoriesKeepTool";
+import { MemoriesRetrievalTool } from "./MemoriesRetrievalTool";
+import { TimeTool } from "./TimeTool";
+import { SearxngWebSearchTool } from "./web-search/SearxngWebSearchTool";
+import { BraveWebSearchTool } from "./web-search/BraveWebSearchTool";
+import { RemoteTool } from "./RemoteTool";
 
 export { 
-    MemoriesKeepSkill, 
-    MemoriesRetrievalSkill, 
-    TimeSkill, 
-    SearxngWebSearchSkill, 
-    BraveWebSearchSkill,
-    RemoteSkill
+    MemoriesKeepTool, 
+    MemoriesRetrievalTool, 
+    TimeTool, 
+    SearxngWebSearchTool, 
+    BraveWebSearchTool,
+    RemoteTool
 };

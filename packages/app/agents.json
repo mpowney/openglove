@@ -18,8 +18,8 @@
       "keepAlive": 600
     },
     "skills": { 
-      "local": [ "SearxngWebSearchSkill", "TimeSkill", "MemoriesRetrievalSkill", "MemoriesKeepSkill" ],
-      "socket": [ "WebBrowserSkill" ]
+      "local": [ "SearxngWebSearchTool", "TimeTool", "MemoriesRetrievalTool", "MemoriesKeepTool" ],
+      "socket": [ "WebBrowserTool" ]
     },
     "channels": [
       {

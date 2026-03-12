@@ -5,15 +5,15 @@ import * as os from 'os';
 import * as path from 'path';
 
 import { BaseEmbeddingsModel } from '../../src/models';
-import { MemoriesKeepSkill } from '../../src/skills/MemoriesKeepSkill';
-import { MemoriesRetrievalSkill } from '../../src/skills/MemoriesRetrievalSkill';
+import { MemoriesKeepTool } from '../../src/skills/MemoriesKeepTool';
+import { MemoriesRetrievalTool } from '../../src/skills/MemoriesRetrievalTool';
 import { FilesystemEmbeddingsIndex } from '../../src/utils/embeddings';
 
 describe('Memories keep and retrieve flow', () => {
   let tmpRoot: string;
   let memoriesDir: string;
   let skillsConfigPath: string;
-  let previousSkillsConfigPath: string | undefined;
+  let previousToolsConfigPath: string | undefined;
 
   beforeEach(async () => {
     tmpRoot = await fs.promises.mkdtemp(
@@ -26,10 +26,10 @@ describe('Memories keep and retrieve flow', () => {
       skillsConfigPath,
       JSON.stringify(
         {
-          MemoriesKeepSkill: {
+          MemoriesKeepTool: {
             memoriesPath: memoriesDir
           },
-          MemoriesRetrievalSkill: {
+          MemoriesRetrievalTool: {
             memoriesPath: memoriesDir
           }
         },
@@ -39,7 +39,7 @@ describe('Memories keep and retrieve flow', () => {
       'utf-8'
     );
 
-    previousSkillsConfigPath = process.env.SKILLS_CONFIG_PATH;
+    previousToolsConfigPath = process.env.SKILLS_CONFIG_PATH;
     process.env.SKILLS_CONFIG_PATH = skillsConfigPath;
 
     const mockModel = {
@@ -58,25 +58,25 @@ describe('Memories keep and retrieve flow', () => {
     jest.useRealTimers();
     jest.restoreAllMocks();
 
-    if (previousSkillsConfigPath === undefined) {
+    if (previousToolsConfigPath === undefined) {
       delete process.env.SKILLS_CONFIG_PATH;
     } else {
-      process.env.SKILLS_CONFIG_PATH = previousSkillsConfigPath;
+      process.env.SKILLS_CONFIG_PATH = previousToolsConfigPath;
     }
 
     await fs.promises.rm(tmpRoot, { recursive: true, force: true });
   });
 
-  it('stores a memory with MemoriesKeepSkill and retrieves it with MemoriesRetrievalSkill', async () => {
+  it('stores a memory with MemoriesKeepTool and retrieves it with MemoriesRetrievalTool', async () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-03-08T11:22:33Z'));
 
-    const keepSkill = new MemoriesKeepSkill();
-    const retrievalSkill = new MemoriesRetrievalSkill();
+    const keepTool = new MemoriesKeepTool();
+    const retrievalTool = new MemoriesRetrievalTool();
 
     const memoryText = 'Remember that alpha project launch is on Friday.';
 
-    const keepResult = await keepSkill.run(memoryText);
+    const keepResult = await keepTool.run(memoryText);
     expect(keepResult.success).toBe(true);
     expect(keepResult.type).toBe('memoryKept');
 
@@ -84,7 +84,7 @@ describe('Memories keep and retrieve flow', () => {
     const markdownFiles = memoryFiles.filter((f) => f.endsWith('.md'));
     expect(markdownFiles.length).toBe(1);
 
-    const retrievalResult = await retrievalSkill.run('');
+    const retrievalResult = await retrievalTool.run('');
     expect(retrievalResult.success).toBe(true);
     expect(retrievalResult.type).toBe('memories');
     expect(retrievalResult.count).toBe(1);
@@ -96,15 +96,15 @@ describe('Memories keep and retrieve flow', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-03-08T12:00:00Z'));
 
-    const keepSkill = new MemoriesKeepSkill();
-    const retrievalSkill = new MemoriesRetrievalSkill();
+    const keepTool = new MemoriesKeepTool();
+    const retrievalTool = new MemoriesRetrievalTool();
 
     const memoryText = 'Store this: battery test passed on bench 3.';
 
-    const keepResult = await keepSkill.run({ input: memoryText });
+    const keepResult = await keepTool.run({ input: memoryText });
     expect(keepResult.success).toBe(true);
 
-    const retrievalResult = await retrievalSkill.run('');
+    const retrievalResult = await retrievalTool.run('');
     expect(retrievalResult.success).toBe(true);
     expect(retrievalResult.count).toBe(1);
     expect(retrievalResult.memories[0].content).toContain(memoryText);

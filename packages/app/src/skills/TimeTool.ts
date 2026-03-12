@@ -1,9 +1,9 @@
-import { BaseSkill, SkillContext } from '@openglove/base';
+import { BaseTool, ToolContext } from '@openglove/base';
 
-export class TimeSkill extends BaseSkill {
+export class TimeTool extends BaseTool {
   constructor(opts: { id?: string; name?: string; description?: string; tags?: string[] } = {}) {
     super({ 
-      name: opts.name ?? 'TimeSkill', 
+      name: opts.name ?? 'TimeTool', 
       description: opts.description ?? 'Returns current time info', 
       parameterSchema: '{}',
       tags: opts.tags ?? ['time'] 
@@ -15,7 +15,7 @@ export class TimeSkill extends BaseSkill {
     return /\b(time|what time|current time|now|timezone)\b/.test(s);
   }
 
-  protected async runSkill(_input: any, _ctx?: SkillContext) {
+  protected async runTool(_input: any, _ctx?: ToolContext) {
     // Extract string input if provided in object format
     const inputStr = typeof _input === 'object' && _input?.input ? _input.input : _input;
     

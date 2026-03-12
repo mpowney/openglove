@@ -10,17 +10,17 @@ async function main() {
 //   const model = new LocalModel({}, { name: 'EchoModel', description: 'Simple echo model', version: '0.1' });
 //   const agent = new ChatAgent(model, { name: 'EchoAgent', role: 'assistant' });
 //   // Register example skills
-//   const timeSkill = new TimeSkill();
-//   (agent as any).registerSkill(timeSkill);
-//   // Register WebSearchSkill with configurable base URL (SEARXNG_URL env var)
+//   const timeTool = new TimeTool();
+//   (agent as any).registerTool(timeTool);
+//   // Register WebSearchTool with configurable base URL (SEARXNG_URL env var)
 //   const searxngBaseUrl = process.env.SEARXNG_URL || 'https://searxng.example.org';
 //   try {
-//     // const webSkill = new SearxngWebSearchSkill({ baseUrl: searxngBaseUrl, resultCount: 3 });
-//     const webSkill = new SearxngWebSearchSkill({ resultCount: 3 });
-//     (agent as any).registerSkill(webSkill);
+//     // const webTool = new SearxngWebSearchTool({ baseUrl: searxngBaseUrl, resultCount: 3 });
+//     const webTool = new SearxngWebSearchTool({ resultCount: 3 });
+//     (agent as any).registerTool(webTool);
 //   } catch (err: unknown) {
 //     const emsg = err instanceof Error ? err.message : String(err);
-//     logger.warn('SearxngWebSearchSkill not registered', { error: emsg });
+//     logger.warn('SearxngWebSearchTool not registered', { error: emsg });
 //   }
 
 //   logger.log('Sending message: Hello world');
@@ -60,7 +60,7 @@ async function main() {
   // Create an agent backed by the Ollama model to integrate it into the agent flow
   // const agent = new ChatAgent(ollamaModel, { role: 'assistant' });
   // register same skills on the ollamaAgent so it can use them
-//   (ollamaAgent as any).registerSkill(timeSkill);
+//   (ollamaAgent as any).registerTool(timeTool);
 
   // try {
   //   logger.log('OllamaModel (stream) generate via agent flow:');

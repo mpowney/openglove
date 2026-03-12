@@ -1,18 +1,18 @@
-import { BaseSkillRunner } from '../runners/BaseSkillRunner';
+import { BaseToolRunner } from '../runners/BaseToolRunner';
 import { Logger } from '../utils/Logger';
 import { containsSecrets, getSecretCount } from '../utils/Secrets';
 import { loadConfig } from '../utils/Config';
 import * as path from 'path';
 
-export type SkillContext = {
+export type ToolContext = {
   agentId?: string;
   model?: any;
   metadata?: Record<string, any>;
 };
 
-const logger = new Logger('BaseSkill');
+const logger = new Logger('BaseTool');
 
-export abstract class BaseSkill {
+export abstract class BaseTool {
   readonly id: string;
   name?: string;
   description?: string;
@@ -21,7 +21,7 @@ export abstract class BaseSkill {
   /** Config object loaded from skills.json (by `name`) */
   config: Record<string, any>;
   /** Optional skill runner for executing logic before/after skill execution */
-  protected skillRunner: BaseSkillRunner | null = null;
+  protected skillRunner: BaseToolRunner | null = null;
 
   private static get skillsPathCandidates(): string[] {
     const cwd = process.cwd();
@@ -31,13 +31,13 @@ export abstract class BaseSkill {
       : undefined;
     const configDir = configPath ? path.dirname(configPath) : undefined;
 
-    const mainSkillsPath = require.main?.path
+    const mainToolsPath = require.main?.path
       ? path.resolve(require.main.path, 'skills')
       : undefined;
 
-    return BaseSkill.uniquePaths([
+    return BaseTool.uniquePaths([
       process.env.SKILLS_PATH,
-      mainSkillsPath,
+      mainToolsPath,
       path.resolve(cwd, 'skills'),
       path.resolve(cwd, 'src', 'skills'),
       path.resolve(cwd, 'dist', 'skills'),
@@ -76,24 +76,24 @@ export abstract class BaseSkill {
     ];
   }
 
-  static async require(name: string, config?: any): Promise<BaseSkill> {
+  static async require(name: string, config?: any): Promise<BaseTool> {
 
-    const basePaths = BaseSkill.skillsPathCandidates;
+    const basePaths = BaseTool.skillsPathCandidates;
 
     for (const basePath of basePaths) {
       try {
         // Try to load from skills/index first.
-        const index = await BaseSkill.importFromCandidates(
-          BaseSkill.moduleSpecifiers(path.join(basePath, 'index')).concat(
-            BaseSkill.moduleSpecifiers(basePath)
+        const index = await BaseTool.importFromCandidates(
+          BaseTool.moduleSpecifiers(path.join(basePath, 'index')).concat(
+            BaseTool.moduleSpecifiers(basePath)
           )
         );
         let Ctor = index?.[name];
 
         // If not found in index, try loading from individual skill file.
         if (!Ctor) {
-          const mod = await BaseSkill.importFromCandidates(
-            BaseSkill.moduleSpecifiers(path.join(basePath, name))
+          const mod = await BaseTool.importFromCandidates(
+            BaseTool.moduleSpecifiers(path.join(basePath, name))
           );
           Ctor = (mod && (mod.default ?? mod[name])) as any;
         }
@@ -112,7 +112,7 @@ export abstract class BaseSkill {
     }
 
     throw new Error(
-      `Skill ${name} not found in any configured skills path (${basePaths.join(', ')}) or is not a constructor`
+      `Tool ${name} not found in any configured skills path (${basePaths.join(', ')}) or is not a constructor`
     );
   }
 
@@ -135,18 +135,18 @@ export abstract class BaseSkill {
     // Attach config matching this skill's name (if any)
     // Use shared loader so behaviour is consistent with other components
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const all = loadConfig(BaseSkill.configPath) || {};
+    const all = loadConfig(BaseTool.configPath) || {};
     const cfg = (this.name && all && all[this.name]) || {};
     this.config = cfg;
 
     // Load skill runner from config if specified
-    this.loadSkillRunnerFromConfig();
+    this.loadToolRunnerFromConfig();
   }
 
   /**
    * Dynamically load and instantiate a skill runner from config
    */
-  private async loadSkillRunnerFromConfig(): Promise<void> {
+  private async loadToolRunnerFromConfig(): Promise<void> {
     try {
       const runnerConfig = this.config?.runner ?? this.config?.skillRunner;
       if (!runnerConfig) return;
@@ -156,12 +156,12 @@ export abstract class BaseSkill {
         : runnerConfig.type ?? runnerConfig.name;
 
       if (!runnerType) {
-        logger.warn('Skill runner config found but no type/name specified');
+        logger.warn('Tool runner config found but no type/name specified');
         return;
       }
 
-      const runner = await BaseSkillRunner.require(runnerType, runnerConfig.opts);
-      this.setSkillRunner(runner);
+      const runner = await BaseToolRunner.require(runnerType, runnerConfig.opts);
+      this.setToolRunner(runner);
       logger.log(`Attached skill runner ${runnerType} to skill ${this.name}`);
     } catch (err) {
       logger.error(`Failed to load skill runner from config for skill ${this.name}: ${err}`);
@@ -171,14 +171,14 @@ export abstract class BaseSkill {
   /**
    * Set the skill runner for this skill
    */
-  setSkillRunner(runner: BaseSkillRunner | null): void {
+  setToolRunner(runner: BaseToolRunner | null): void {
     this.skillRunner = runner;
   }
 
   /**
    * Get the skill runner instance
    */
-  getSkillRunner(): BaseSkillRunner | null {
+  getToolRunner(): BaseToolRunner | null {
     return this.skillRunner;
   }
 
@@ -187,27 +187,27 @@ export abstract class BaseSkill {
    * Subclasses can use this to wrap their run() implementation
    */
   protected async executeWithRunner<T>(
-    fn: (input: any, ctx?: SkillContext) => Promise<T>,
+    fn: (input: any, ctx?: ToolContext) => Promise<T>,
     input: any,
-    ctx?: SkillContext
+    ctx?: ToolContext
   ): Promise<T> {
     // Execute before hook if runner is configured
-    await this.skillRunner?.runBeforeSkill(this, input, ctx);
+    await this.skillRunner?.runBeforeTool(this, input, ctx);
 
     // Execute the actual function
     const result = await fn(input, ctx);
 
     // Execute after hook if runner is configured
-    await this.skillRunner?.runAfterSkill(this, result, input, ctx);
+    await this.skillRunner?.runAfterTool(this, result, input, ctx);
 
     return result;
   }
 
   /** Return true if this skill can handle the given input */
-  abstract canHandle(input: string, ctx?: SkillContext): boolean | Promise<boolean>;
+  abstract canHandle(input: string, ctx?: ToolContext): boolean | Promise<boolean>;
 
   /** Execute the skill and return a result object */
-  async run(input: any, ctx?: SkillContext): Promise<any> {
+  async run(input: any, ctx?: ToolContext): Promise<any> {
     // Check if input contains any registered secrets and warn if it does
     if (getSecretCount() > 0 && containsSecrets(input)) {
       logger.warn('Input contains secret values that should not be passed directly', {
@@ -220,19 +220,19 @@ export abstract class BaseSkill {
     if (this.skillRunner) {
       logger.verbose('Executing skill with runner', { skillId: this.id, skillName: this.name });
       return await this.executeWithRunner(
-        async (input: any, ctx?: SkillContext) => {
-          return await this.runSkill(input, ctx);
+        async (input: any, ctx?: ToolContext) => {
+          return await this.runTool(input, ctx);
         },
         input,
         ctx
       );
     } else {
       logger.verbose('Executing skill without runner', { skillId: this.id, skillName: this.name });
-      return await this.runSkill(input, ctx);
+      return await this.runTool(input, ctx);
     }
   }
 
-  protected abstract runSkill(input: any, ctx?: SkillContext): Promise<any>;
+  protected abstract runTool(input: any, ctx?: ToolContext): Promise<any>;
 
   async getInfo(): Promise<{ name: string; description?: string; parameterSchema?: string; tags: string[] }> {
     return {

@@ -3,8 +3,8 @@
  * This shows how to use the harness for both unit and integration testing
  */
 
-import { SkillTestHarness } from '../harness';
-import { MemoriesKeepSkill } from '../../src/skills/MemoriesKeepSkill';
+import { ToolTestHarness } from '../harness';
+import { MemoriesKeepTool } from '../../src/skills/MemoriesKeepTool';
 import { skillFixtures } from '../fixtures/testData';
 
 // Mock for unit tests
@@ -20,7 +20,7 @@ jest.mock('@openglove/base', () => ({
     warn: jest.fn(),
     verbose: jest.fn()
   })),
-  BaseSkill: class {
+  BaseTool: class {
     name: string;
     description: string;
     config: any;
@@ -32,11 +32,11 @@ jest.mock('@openglove/base', () => ({
     }
 
     async run(input: any, ctx?: any): Promise<any> {
-      return (this as any).runSkill(input, ctx);
+      return (this as any).runTool(input, ctx);
     }
 
-    protected async runSkill(_input: any, _ctx?: any): Promise<any> {
-      throw new Error('runSkill must be implemented by subclass');
+    protected async runTool(_input: any, _ctx?: any): Promise<any> {
+      throw new Error('runTool must be implemented by subclass');
     }
 
     async getInfo(): Promise<any> {
@@ -50,12 +50,12 @@ jest.mock('@openglove/base', () => ({
 jest.mock('../../src/utils/embeddings');
 jest.mock('../../src/models');
 
-describe('SkillTestHarness - MemoriesKeepSkill Example', () => {
+describe('ToolTestHarness - MemoriesKeepTool Example', () => {
   describe('Unit Tests (Mocked)', () => {
-    let harness: SkillTestHarness;
+    let harness: ToolTestHarness;
 
     beforeEach(() => {
-      harness = new SkillTestHarness(MemoriesKeepSkill, {
+      harness = new ToolTestHarness(MemoriesKeepTool, {
         mockMode: 'full',
         verbose: false
       });
@@ -66,7 +66,7 @@ describe('SkillTestHarness - MemoriesKeepSkill Example', () => {
     });
 
     it('should verify skill interface', () => {
-      const verification = harness.verifySkillInterface();
+      const verification = harness.verifyToolInterface();
       expect(verification.complete).toBe(true);
       expect(verification.hasCanHandle).toBe(true);
       expect(verification.hasRun).toBe(true);
@@ -158,11 +158,11 @@ describe('SkillTestHarness - MemoriesKeepSkill Example', () => {
   });
 
   describe('Integration Tests (Real Services - Optional)', () => {
-    let harness: SkillTestHarness;
+    let harness: ToolTestHarness;
 
     beforeEach(() => {
       // Note: This configuration would skip tests if service unavailable
-      harness = new SkillTestHarness(MemoriesKeepSkill, {
+      harness = new ToolTestHarness(MemoriesKeepTool, {
         mockMode: 'partial',
         realServices: ['filesystem'],
         skipIfUnavailable: true,
@@ -193,7 +193,7 @@ describe('SkillTestHarness - MemoriesKeepSkill Example', () => {
 
   describe('Harness Configuration Examples', () => {
     it('should support full mock mode configuration', () => {
-      const harness = new SkillTestHarness(MemoriesKeepSkill, {
+      const harness = new ToolTestHarness(MemoriesKeepTool, {
         mockMode: 'full'
       });
       expect(harness.getComponent()).toBeDefined();
@@ -201,7 +201,7 @@ describe('SkillTestHarness - MemoriesKeepSkill Example', () => {
     });
 
     it('should support partial mock mode configuration', () => {
-      const harness = new SkillTestHarness(MemoriesKeepSkill, {
+      const harness = new ToolTestHarness(MemoriesKeepTool, {
         mockMode: 'partial',
         realServices: ['filesystem'],
         mockedServices: ['embeddings']
@@ -211,7 +211,7 @@ describe('SkillTestHarness - MemoriesKeepSkill Example', () => {
     });
 
     it('should support verbose logging', () => {
-      const harness = new SkillTestHarness(MemoriesKeepSkill, {
+      const harness = new ToolTestHarness(MemoriesKeepTool, {
         mockMode: 'full',
         verbose: true // This will log harness operations
       });
@@ -220,7 +220,7 @@ describe('SkillTestHarness - MemoriesKeepSkill Example', () => {
     });
 
     it('should support custom timeouts', () => {
-      const harness = new SkillTestHarness(MemoriesKeepSkill, {
+      const harness = new ToolTestHarness(MemoriesKeepTool, {
         mockMode: 'full',
         timeout: 60000 // 60 second timeout
       });

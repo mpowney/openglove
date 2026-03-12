@@ -9,7 +9,7 @@ I chose **TypeScript** and **Node.js** as the primary development platform for O
 
 #### TypeScript
 - **Type Safety**: Catches class of errors at compile-time rather than runtime, reducing bugs in complex agent and skill interactions
-- **IDE Support**: Excellent tooling and autocompletion improves developer experience when working with the abstract class hierarchy (BaseModel, BaseAgent, BaseSkill)
+- **IDE Support**: Excellent tooling and autocompletion improves developer experience when working with the abstract class hierarchy (BaseModel, BaseAgent, BaseTool)
 - **Maintainability**: Self-documenting code through type annotations makes it easier for teams to understand agent/model/skill interfaces
 - **Refactoring**: Safe refactoring at scale with compiler support ensures interface changes propagate correctly across the skill system
 

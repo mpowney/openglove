@@ -1,5 +1,5 @@
 { 
-  "SearxngWebSearchSkill": {
+  "SearxngWebSearchTool": {
     "runner": {
       "type": "RinseAndRepeatRunner"
     },
@@ -8,16 +8,16 @@
     "resultCount": 3,
     "params": { "engines": "duckduckgo,google,bing,brave" }
   },
-  "TimeSkill": {
+  "TimeTool": {
     "timezoneHint": "local"
   },
-  "MemoriesRetrievalSkill": {
+  "MemoriesRetrievalTool": {
     "memoriesPath": "memories"
   },
-  "MemoriesKeepSkill": {
+  "MemoriesKeepTool": {
     "memoriesPath": "memories"
   },
-  "WebBrowserSkill": {
+  "WebBrowserTool": {
     "runner": {
       "type": "RinseAndRepeatRunner",
       "opts": { "maxRetries": 3 }

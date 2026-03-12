@@ -3,22 +3,22 @@
  */
 
 import { ComponentTestHarness, HarnessConfig } from './ComponentTestHarness';
-import { BaseSkill } from '@openglove/base';
+import { BaseTool } from '@openglove/base';
 
-export interface SkillTestConfig extends HarnessConfig {
+export interface ToolTestConfig extends HarnessConfig {
   skillName?: string;
   description?: string;
   tags?: string[];
 }
 
-export class SkillTestHarness extends ComponentTestHarness<BaseSkill> {
-  protected skillConfig: SkillTestConfig;
+export class ToolTestHarness extends ComponentTestHarness<BaseTool> {
+  protected skillConfig: ToolTestConfig;
 
   constructor(
-    SkillClass: new (opts?: any) => BaseSkill,
-    config: SkillTestConfig = {}
+    ToolClass: new (opts?: any) => BaseTool,
+    config: ToolTestConfig = {}
   ) {
-    super(SkillClass, config);
+    super(ToolClass, config);
     this.skillConfig = { ...config };
   }
 
@@ -41,7 +41,7 @@ export class SkillTestHarness extends ComponentTestHarness<BaseSkill> {
     return this.executeTest(`canHandle: "${input}"`, async () => {
       const skill = this.component as any;
       if (!skill.canHandle) {
-        throw new Error('Skill does not implement canHandle method');
+        throw new Error('Tool does not implement canHandle method');
       }
       return await skill.canHandle(input);
     }) as Promise<boolean>;
@@ -55,7 +55,7 @@ export class SkillTestHarness extends ComponentTestHarness<BaseSkill> {
     return this.executeTest(`run: ${inputStr}...`, async () => {
       const skill = this.component as any;
       if (!skill.run) {
-        throw new Error('Skill does not implement run method');
+        throw new Error('Tool does not implement run method');
       }
       return await skill.run(input);
     });
@@ -111,7 +111,7 @@ export class SkillTestHarness extends ComponentTestHarness<BaseSkill> {
     return this.executeTest('getInfo', async () => {
       const skill = this.component as any;
       if (!skill.getInfo) {
-        throw new Error('Skill does not implement getInfo method');
+        throw new Error('Tool does not implement getInfo method');
       }
       return await skill.getInfo();
     });
@@ -132,7 +132,7 @@ export class SkillTestHarness extends ComponentTestHarness<BaseSkill> {
     return this.executeTest(`runWithCriteria: ${inputStr}...`, async () => {
       const skill = this.component as any;
       if (!skill.run) {
-        throw new Error('Skill does not implement run method');
+        throw new Error('Tool does not implement run method');
       }
       const result = await skill.run(input);
 
@@ -218,21 +218,21 @@ export class SkillTestHarness extends ComponentTestHarness<BaseSkill> {
   /**
    * Get skill metadata convenience method
    */
-  public getSkillName(): string | undefined {
+  public getToolName(): string | undefined {
     return (this.component as any).name;
   }
 
   /**
    * Get skill description convenience method
    */
-  public getSkillDescription(): string | undefined {
+  public getToolDescription(): string | undefined {
     return (this.component as any).description;
   }
 
   /**
    * Verify skill implements required methods
    */
-  public verifySkillInterface(): {
+  public verifyToolInterface(): {
     hasCanHandle: boolean;
     hasRun: boolean;
     hasGetInfo: boolean;

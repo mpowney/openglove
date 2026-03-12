@@ -1,10 +1,10 @@
-import { BaseWebSearchSkill, BaseWebSearchOptions } from './BaseWebSearchSkill';
+import { BaseWebSearchTool, BaseWebSearchOptions } from './BaseWebSearchTool';
 
-export class BraveWebSearchSkill extends BaseWebSearchSkill {
+export class BraveWebSearchTool extends BaseWebSearchTool {
   constructor(opts: BaseWebSearchOptions & { id?: string; name?: string; description?: string; tags?: string[] }) {
     super({ 
       ...opts, 
-      name: opts.name ?? 'BraveWebSearchSkill',
+      name: opts.name ?? 'BraveWebSearchTool',
       description: opts.description ?? 'Searches the web using the Brave search engine API',
       tags: opts.tags ?? ['web-search', 'brave'], 
     });

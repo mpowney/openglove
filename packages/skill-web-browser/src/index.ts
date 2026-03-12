@@ -1,3 +1,3 @@
-import { WebBrowserSkill } from './skills/WebBrowserSkill';
+import { WebBrowserTool } from './skills/WebBrowserTool';
 
-export { WebBrowserSkill };
+export { WebBrowserTool };

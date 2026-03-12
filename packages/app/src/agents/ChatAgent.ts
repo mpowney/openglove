@@ -1,6 +1,6 @@
 import { BaseAgent } from './BaseAgent';
 import { Message } from '../models/BaseModel';
-import { SkillContext, Logger } from '@openglove/base';
+import { ToolContext, Logger } from '@openglove/base';
 import { BaseChannel, ChannelMessage } from '../channels/BaseChannel';
 import { DefaultPipeline } from '../pipeline/DefaultPipeline';
 import { InputHandlerInput } from '../pipeline/input-handlers';
@@ -14,7 +14,7 @@ export class ChatAgent extends BaseAgent {
   history: Message[] = [];
   pipeline: DefaultPipeline = new DefaultPipeline({ emitMessage: this.emitMessage.bind(this) });
   skillsModel?: BaseGenerativeModel; // Optional separate model for determining what skills to use, if not set the main model will be used
-  skillsPromptTemplate?: string = "You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of skills to those relevant to the user's input. Be succinct, and don't list irrelevant skills. User Input: {prompt}.\n\nSkills: {skills-list}"; // Optional template for the prompt to determine skills, can be set in config
+  skillsPromptTemplate?: string = "You are a system agent helping to plan the next query to direct the assistant.  Filter the following list of skills to those relevant to the user's input. Be succinct, and don't list irrelevant skills. User Input: {prompt}.\n\nTools: {skills-list}"; // Optional template for the prompt to determine skills, can be set in config
 
   constructor(model?: BaseGenerativeModel, opts: { id?: string; name?: string; role?: string } = {}) {
     super(model, opts);
@@ -188,7 +188,7 @@ export class ChatAgent extends BaseAgent {
               if (!skill) continue;
               // Run each matched skill and yield its result as a system message before the main model response
               try {
-                const skillCtx: SkillContext = { agentId: this.id, model: this.model };
+                const skillCtx: ToolContext = { agentId: this.id, model: this.model };
                 const skillResult = await skill.run(pipelineOutput, skillCtx);
                 if (skillResult !== undefined) {
                   const content = typeof skillResult === 'string' ? skillResult : JSON.stringify(skillResult, null, 2);

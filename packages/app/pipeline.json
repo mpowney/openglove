@@ -2,15 +2,15 @@
     "DefaultPipeline": {
         "contextManager": {
             "type": "DefaultContextManager",
-            "availableSkills": [
-                "MemoriesKeepSkill", 
-                "MemoriesRetrievalSkill", 
-                "MemoriesIndexSkill", 
-                "TimeSkill", 
-                "SearxngWebSearchSkill" 
+            "availableTools": [
+                "MemoriesKeepTool", 
+                "MemoriesRetrievalTool", 
+                "MemoriesIndexTool", 
+                "TimeTool", 
+                "SearxngWebSearchTool" 
             ],
-            "availableRemoteSkills": [
-                "WebBrowserSkill"
+            "availableRemoteTools": [
+                "WebBrowserTool"
             ],
             "planningModel": {
                 "type": "OllamaGenerativeModel",

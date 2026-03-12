@@ -1,10 +1,10 @@
-import { BaseWebSearchSkill, BaseWebSearchOptions } from './BaseWebSearchSkill';
+import { BaseWebSearchTool, BaseWebSearchOptions } from './BaseWebSearchTool';
 
-export class SearxngWebSearchSkill extends BaseWebSearchSkill {
+export class SearxngWebSearchTool extends BaseWebSearchTool {
   constructor(opts: BaseWebSearchOptions & { id?: string; name?: string; description?: string; tags?: string[] }) {
     super({ 
       ...opts, 
-      name: opts.name ?? 'SearxngWebSearchSkill',
+      name: opts.name ?? 'SearxngWebSearchTool',
       description: opts.description ?? 'Searches the web using the Searxng search engine API',
       tags: opts.tags ?? ['web-search', 'searxng'], 
     });

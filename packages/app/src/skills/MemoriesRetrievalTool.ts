@@ -1,17 +1,17 @@
-import { BaseSkill, loadConfig, Logger, SkillContext } from '@openglove/base';
+import { BaseTool, loadConfig, Logger, ToolContext } from '@openglove/base';
 import * as fs from 'fs';
 import * as path from 'path';
 import { BaseEmbeddingsModel } from '../models';
 import { FilesystemEmbeddingsIndex } from '../utils/embeddings';
 
-const logger = new Logger('MemoriesRetrievalSkill');
+const logger = new Logger('MemoriesRetrievalTool');
 
-export class MemoriesRetrievalSkill extends BaseSkill {
+export class MemoriesRetrievalTool extends BaseTool {
   private memoriesPath: string;
 
   constructor(opts: { id?: string; name?: string; description?: string; tags?: string[] } = {}) {
     super({
-      name: opts.name ?? 'MemoriesRetrievalSkill',
+      name: opts.name ?? 'MemoriesRetrievalTool',
       description: opts.description ?? 'Retrieves all stored memories from markdown files',
       parameterSchema: '{}',
       tags: opts.tags ?? ['memories', 'recall', 'remember']
@@ -27,7 +27,7 @@ export class MemoriesRetrievalSkill extends BaseSkill {
     return /\b(memories|recall|remember|stored memories|my memories|what do you remember)\b/.test(s);
   }
 
-  protected async runSkill(_input: any, _ctx?: SkillContext) {
+  protected async runTool(_input: any, _ctx?: ToolContext) {
     // Extract string input if provided in object format (not used in this skill but kept for consistency)
     const inputStr = typeof _input === 'object' && _input?.input ? _input.input : _input;
     
@@ -46,7 +46,7 @@ export class MemoriesRetrievalSkill extends BaseSkill {
       if (inputStr) {
         logger.log(`Retrieving memories with input: ${inputStr}`);
 
-        const config = loadConfig('memoriesSkills.json');
+        const config = loadConfig('memoriesTools.json');
         const modelType = config?.modelType || 'OllamaEmbeddingsModel';
         const modelConfig = config?.modelConfig || {};
   

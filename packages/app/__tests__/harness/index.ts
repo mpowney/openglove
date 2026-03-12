@@ -4,4 +4,4 @@
 
 export { ComponentTestHarness, type HarnessConfig, type MockMode } from './ComponentTestHarness';
 export { ModelTestHarness, type ModelTestConfig } from './ModelTestHarness';
-export { SkillTestHarness, type SkillTestConfig } from './SkillTestHarness';
+export { ToolTestHarness, type ToolTestConfig } from './ToolTestHarness';

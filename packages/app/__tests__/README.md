@@ -1,9 +1,9 @@
-# Memory Skills Unit Tests
+# Memory Tools Unit Tests
 
 Comprehensive unit tests for the three memory management skills:
-- `MemoriesIndexSkill` - Re-indexes memory files with embeddings
-- `MemoriesKeepSkill` - Stores and appends memories to daily markdown files  
-- `MemoriesRetrievalSkill` - Retrieves stored memories from markdown files
+- `MemoriesIndexTool` - Re-indexes memory files with embeddings
+- `MemoriesKeepTool` - Stores and appends memories to daily markdown files  
+- `MemoriesRetrievalTool` - Retrieves stored memories from markdown files
 
 ## Test Structure
 
@@ -13,18 +13,18 @@ The test suite is organized into unit tests and integration tests:
 __tests__/
 ├── examples/
 │   ├── ModelTestHarness.example.test.ts          # Example test harness for models
-│   └── SkillTestHarness.example.test.ts          # Example test harness for skills
+│   └── ToolTestHarness.example.test.ts          # Example test harness for skills
 ├── fixtures/
 │   └── testData.ts                                # Shared test data and fixtures
 ├── harness/
 │   ├── ComponentTestHarness.ts                    # Base test harness component
 │   ├── ModelTestHarness.ts                        # Harness for testing models
-│   └── SkillTestHarness.ts                        # Harness for testing skills
+│   └── ToolTestHarness.ts                        # Harness for testing skills
 ├── integration/
 │   ├── FilesystemEmbeddingsIndex.integration.test.ts   # Real filesystem indexing + Ollama
 │   ├── MemoriesKeepRetrieve.integration.test.ts        # Keep/retrieve flow + Ollama
 │   ├── OllamaModels.integration.test.ts                # Real Ollama service tests
-│   └── WebBrowserSkill.integration.test.ts             # WebBrowserSkill socket server
+│   └── WebBrowserTool.integration.test.ts             # WebBrowserTool socket server
 ├── models/
 │   └── OllamaGenerativeModel.test.ts              # Ollama generative model tests
 ├── skills/
@@ -44,9 +44,9 @@ __tests__/
 - Test individual components
 
 **Integration Tests** (`integration/`)
-- Tests with real external services (Ollama, WebBrowserSkill socket)
+- Tests with real external services (Ollama, WebBrowserTool socket)
 - Verify multi-component workflows
-- May require separate processes (WebBrowserSkill socket server)
+- May require separate processes (WebBrowserTool socket server)
 - Can be skipped if services unavailable
 
 ## Running Tests
@@ -89,7 +89,7 @@ Integration tests verify skills work with real external services and other compo
 
 - **FilesystemEmbeddingsIndex** - Tests real filesystem indexing with Ollama embeddings
 - **MemoriesKeepRetrieve** - Tests keep/retrieve workflow with Ollama embeddings
-- **WebBrowserSkill** - Tests socket communication with WebBrowserSkill server
+- **WebBrowserTool** - Tests socket communication with WebBrowserTool server
 - **OllamaModels** - Tests integration with real Ollama service
 
 ### Running Integration Tests
@@ -104,11 +104,11 @@ Run a specific integration test:
 pnpm test:integration FilesystemEmbeddingsIndex.integration.test
 ```
 
-### WebBrowserSkill Socket Server
+### WebBrowserTool Socket Server
 
-The `WebBrowserSkill.integration.test.ts` test requires the WebBrowserSkill socket server to be running in a separate process.
+The `WebBrowserTool.integration.test.ts` test requires the WebBrowserTool socket server to be running in a separate process.
 
-#### Starting the WebBrowserSkill Socket Server
+#### Starting the WebBrowserTool Socket Server
 
 In a **separate terminal**, navigate to the skill-web-browser package and start the server:
 
@@ -124,14 +124,14 @@ cd packages/skill-web-browser
 pnpm run socket
 ```
 
-The server will listen on `/tmp/web_browser_skill.sock` and handle JSON-RPC 2.0 requests from the WebBrowserSkill integration tests.
+The server will listen on `/tmp/web_browser_skill.sock` and handle JSON-RPC 2.0 requests from the WebBrowserTool integration tests.
 
 #### Socket Server Not Running
 
-If the WebBrowserSkill socket server is not running when you execute the integration tests, you will see a warning:
+If the WebBrowserTool socket server is not running when you execute the integration tests, you will see a warning:
 
 ```
-⚠️  WebBrowserSkill socket server is not running at /tmp/web_browser_skill.sock
+⚠️  WebBrowserTool socket server is not running at /tmp/web_browser_skill.sock
 
 To start the server, run in a separate terminal:
   cd packages/skill-web-browser
@@ -142,14 +142,14 @@ or after building:
   pnpm socket
 ```
 
-The test will still pass, but the WebBrowserSkill-specific tests will be skipped.
+The test will still pass, but the WebBrowserTool-specific tests will be skipped.
 
 ### External Service Requirements
 
 Some integration tests require external services to be running:
 
 - **Ollama Service** - Tests using Ollama embeddings or generative models require Ollama running at `http://localhost:11434` (or `OLLAMA_URL` environment variable: `export OLLAMA_URL=http://ollama-hostname:11434`)
-- **WebBrowserSkill Socket** - Tests require the WebBrowserSkill socket server running (see above)
+- **WebBrowserTool Socket** - Tests require the WebBrowserTool socket server running (see above)
 
 If services are unavailable, tests gracefully skip with informative warnings instead of failing.
 
@@ -157,25 +157,25 @@ If services are unavailable, tests gracefully skip with informative warnings ins
 
 The test suite covers:
 
-### MemoriesIndexSkill
+### MemoriesIndexTool
 - ✅ `canHandle()` - Pattern matching for index/reindex triggers
-- ✅ `runSkill()` - Embedding index generation
+- ✅ `runTool()` - Embedding index generation
 - ✅ Directory creation
 - ✅ Error handling
 - ✅ Input format handling (string and object)
 
-### MemoriesKeepSkill
+### MemoriesKeepTool
 - ✅ `canHandle()` - Pattern matching for memory storage triggers
-- ✅ `runSkill()` - Memory file creation and appending
+- ✅ `runTool()` - Memory file creation and appending
 - ✅ File creation with proper heading
 - ✅ File appending with timestamps
 - ✅ Error handling
 - ✅ Timestamp formatting
 - ✅ Input format handling (string and object)
 
-### MemoriesRetrievalSkill
+### MemoriesRetrievalTool
 - ✅ `canHandle()` - Pattern matching for retrieval triggers
-- ✅ `runSkill()` - Memory file retrieval
+- ✅ `runTool()` - Memory file retrieval
 - ✅ Empty directory handling
 - ✅ Markdown file filtering
 - ✅ Search-based retrieval with embeddings
@@ -194,28 +194,28 @@ All external dependencies are mocked to ensure unit test isolation:
 
 ```
 PASS  __tests__/skills/memories.test.ts
-  Memory Skills
-    MemoriesIndexSkill
+  Memory Tools
+    MemoriesIndexTool
       canHandle
         ✓ should handle "index memory" input
         ✓ should handle "reindex memory" input
         ...
-      runSkill
+      runTool
         ✓ should successfully index memories
         ✓ should create memories directory if it does not exist
         ...
-    MemoriesKeepSkill
+    MemoriesKeepTool
       canHandle
         ✓ should handle "remember" input
         ...
-      runSkill
+      runTool
         ✓ should create new memory file if it does not exist
         ...
-    MemoriesRetrievalSkill
+    MemoriesRetrievalTool
       canHandle
         ✓ should handle "memories" input
         ...
-      runSkill
+      runTool
         ✓ should return empty memories if directory does not exist
         ...
 

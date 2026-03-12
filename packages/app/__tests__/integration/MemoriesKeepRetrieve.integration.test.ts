@@ -4,8 +4,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import { MemoriesKeepSkill } from '../../src/skills/MemoriesKeepSkill';
-import { MemoriesRetrievalSkill } from '../../src/skills/MemoriesRetrievalSkill';
+import { MemoriesKeepTool } from '../../src/skills/MemoriesKeepTool';
+import { MemoriesRetrievalTool } from '../../src/skills/MemoriesRetrievalTool';
 import { fetchWithTimeout } from '../../src/utils/Fetch';
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
@@ -73,7 +73,7 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
 
   it('keeps a memory and retrieves it by search query', async () => {
     const previousCwd = process.cwd();
-    const previousSkillsConfigPath = process.env.SKILLS_CONFIG_PATH;
+    const previousToolsConfigPath = process.env.SKILLS_CONFIG_PATH;
     const tmpRoot = await fs.promises.mkdtemp(
       path.join(os.tmpdir(), 'memories-keep-retrieve-integration-')
     );
@@ -89,8 +89,8 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
         skillsConfigPath,
         JSON.stringify(
           {
-            MemoriesKeepSkill: { memoriesPath },
-            MemoriesRetrievalSkill: { memoriesPath }
+            MemoriesKeepTool: { memoriesPath },
+            MemoriesRetrievalTool: { memoriesPath }
           },
           null,
           2
@@ -99,7 +99,7 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
       );
 
       await fs.promises.writeFile(
-        path.join(tmpRoot, 'memoriesSkills.json'),
+        path.join(tmpRoot, 'memoriesTools.json'),
         JSON.stringify(
           {
             modelType: 'OllamaEmbeddingsModel',
@@ -122,19 +122,19 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
 
       process.env.SKILLS_CONFIG_PATH = skillsConfigPath;
 
-      const keepSkill = new MemoriesKeepSkill();
-      const retrievalSkill = new MemoriesRetrievalSkill();
+      const keepTool = new MemoriesKeepTool();
+      const retrievalTool = new MemoriesRetrievalTool();
 
       const uniqueToken = `memory-token-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2, 10)}`;
       const memoryText = `Remember this integration memory: ${uniqueToken}`;
 
-      const keepResult = await keepSkill.run(memoryText);
+      const keepResult = await keepTool.run(memoryText);
       expect(keepResult.success).toBe(true);
       expect(keepResult.type).toBe('memoryKept');
 
-      const retrievalResult = await retrievalSkill.run(uniqueToken);
+      const retrievalResult = await retrievalTool.run(uniqueToken);
       expect(retrievalResult.success).toBe(true);
       expect(retrievalResult.type).toBe('memories');
       expect(retrievalResult.count).toBeGreaterThan(0);
@@ -147,10 +147,10 @@ describe('Memories keep/retrieve integration with Ollama embeddings', () => {
       );
       expect(found).toBe(true);
     } finally {
-      if (previousSkillsConfigPath === undefined) {
+      if (previousToolsConfigPath === undefined) {
         delete process.env.SKILLS_CONFIG_PATH;
       } else {
-        process.env.SKILLS_CONFIG_PATH = previousSkillsConfigPath;
+        process.env.SKILLS_CONFIG_PATH = previousToolsConfigPath;
       }
 
       process.chdir(previousCwd);

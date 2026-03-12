@@ -161,10 +161,10 @@ export const integrationFixtures = {
  */
 export const exampleUsage = {
   skill: `
-    import { SkillTestHarness } from '__tests__/harness';
-    import { MemoriesKeepSkill } from 'src/skills/MemoriesKeepSkill';
+    import { ToolTestHarness } from '__tests__/harness';
+    import { MemoriesKeepTool } from 'src/skills/MemoriesKeepTool';
     
-    const harness = new SkillTestHarness(MemoriesKeepSkill, { 
+    const harness = new ToolTestHarness(MemoriesKeepTool, { 
       mockMode: 'full' 
     });
     

@@ -29,42 +29,42 @@ What this includes
 - `src/models/LocalModel.ts` — a tiny concrete model that echoes input.
 - `src/agents/BaseAgent.ts` — abstract agent with `plan`/`act`, plus skill registration.
 - `src/agents/ChatAgent.ts` — simple chat agent that prefers skills, supports streaming via `sendStream()`.
-- `src/skills/Skill.ts` — base `Skill` class with config-file loading.
-- `src/skills/TimeSkill.ts` — example skill that returns current time.
- - `src/skills/BaseSkill.ts` — base `BaseSkill` class with config-file loading.
- - `src/skills/TimeSkill.ts` — example skill that returns current time.
- - `src/skills/web/SearxngWebSearchSkill.ts` — example skill that queries a SearxNG instance.
+- `src/skills/Tool.ts` — base `Tool` class with config-file loading.
+- `src/skills/TimeTool.ts` — example skill that returns current time.
+ - `src/skills/BaseTool.ts` — base `BaseTool` class with config-file loading.
+ - `src/skills/TimeTool.ts` — example skill that returns current time.
+ - `src/skills/web/SearxngWebSearchTool.ts` — example skill that queries a SearxNG instance.
 - `src/index.ts` — example runner demonstrating skills and streaming.
 - `skills.json` — example skill configuration file.
 
-Skills and configuration
+Tools and configuration
 
-This scaffold includes a small skills system. Each skill extends the base `BaseSkill` class and implements `canHandle(input)` and `run(input)`.
+This scaffold includes a small skills system. Each skill extends the base `BaseTool` class and implements `canHandle(input)` and `run(input)`.
 
-- skills config file: The base `BaseSkill` attempts to load a JSON file at `./skills.json` by default. To use a different path, set the `SKILLS_CONFIG_PATH` environment variable before running.
-- skill config binding: When a skill instance is constructed its `name` is used to look up an object in the JSON file — e.g. a `SearxngWebSearchSkill` with `name: "SearxngWebSearchSkill"` will receive the object at `skills.json["SearxngWebSearchSkill"]` as `this.config`.
-- constructor override: Skills may accept explicit constructor options which take precedence over config values.
+- skills config file: The base `BaseTool` attempts to load a JSON file at `./skills.json` by default. To use a different path, set the `SKILLS_CONFIG_PATH` environment variable before running.
+- skill config binding: When a skill instance is constructed its `name` is used to look up an object in the JSON file — e.g. a `SearxngWebSearchTool` with `name: "SearxngWebSearchTool"` will receive the object at `skills.json["SearxngWebSearchTool"]` as `this.config`.
+- constructor override: Tools may accept explicit constructor options which take precedence over config values.
 
 Example `skills.json` (included):
 
 ```json
 {
-	"WebSearchSkill": {
+	"WebSearchTool": {
 		"baseUrl": "https://searxng.example.org",
 		"timeout": 8000,
 		"resultCount": 3,
 		"params": { "engines": "google,bing" }
 	},
-	"TimeSkill": { "timezoneHint": "local" }
+	"TimeTool": { "timezoneHint": "local" }
 }
 ```
 
 Web search skill
 
- - The `SearxngWebSearchSkill` queries a SearxNG instance using its `/search?format=json&q=...` API. It can be configured via:
- 	- constructor options passed when creating the skill (e.g. `new SearxngWebSearchSkill({ baseUrl: 'https://...' })`), or
- 	- the `skills.json` entry for `SearxngWebSearchSkill` (preferred when constructor options are omitted).
- - The example runner in `src/index.ts` also reads an environment variable `SEARXNG_URL` and will register a `SearxngWebSearchSkill` with that base URL if present.
+ - The `SearxngWebSearchTool` queries a SearxNG instance using its `/search?format=json&q=...` API. It can be configured via:
+ 	- constructor options passed when creating the skill (e.g. `new SearxngWebSearchTool({ baseUrl: 'https://...' })`), or
+ 	- the `skills.json` entry for `SearxngWebSearchTool` (preferred when constructor options are omitted).
+ - The example runner in `src/index.ts` also reads an environment variable `SEARXNG_URL` and will register a `SearxngWebSearchTool` with that base URL if present.
 
 Using skills programmatically
 
@@ -72,8 +72,8 @@ Using skills programmatically
 
 ```ts
 const agent = new ChatAgent(model);
-agent.registerSkill(new TimeSkill());
-agent.registerSkill(new SearxngWebSearchSkill({ baseUrl: 'https://searxng.example.org' }));
+agent.registerTool(new TimeTool());
+agent.registerTool(new SearxngWebSearchTool({ baseUrl: 'https://searxng.example.org' }));
 ```
 
 - The `ChatAgent` prefers skills: when `send()` or `sendStream()` is called, registered skills are checked first (by `canHandle`) and their `run()` result is returned if matched.
@@ -93,7 +93,7 @@ for await (const chunk of agent.sendStream('Tell me a story')) {
 Environment
 
 - `SKILLS_CONFIG_PATH` — path to a JSON file containing skill configs (defaults to `./skills.json`).
-- `SEARXNG_URL` — optional base URL used by the example runner to register a `WebSearchSkill` (falls back to the value in `skills.json` if present).
+- `SEARXNG_URL` — optional base URL used by the example runner to register a `WebSearchTool` (falls back to the value in `skills.json` if present).
 
 - `MODELS_CONFIG_PATH` — path to a JSON file containing model configs (defaults to `./models.json`).
 - `OLLAMA_URL` — optional base URL for an Ollama instance; the example runner reads this to construct an `OllamaModel` (falls back to the `models.json` entry for `OllamaModel`).

@@ -1,17 +1,17 @@
-import { BaseSkill, loadConfig, Logger, SkillContext } from '@openglove/base';
+import { BaseTool, loadConfig, Logger, ToolContext } from '@openglove/base';
 import * as fs from 'fs';
 import * as path from 'path';
 import { BaseEmbeddingsModel } from '../models';
 import { FilesystemEmbeddingsIndex } from '../utils/embeddings';
 
-const logger = new Logger('MemoriesIndexSkill');
+const logger = new Logger('MemoriesIndexTool');
 
-export class MemoriesIndexSkill extends BaseSkill {
+export class MemoriesIndexTool extends BaseTool {
   private memoriesPath: string;
 
   constructor(opts: { id?: string; name?: string; description?: string; tags?: string[] } = {}) {
     super({
-      name: opts.name ?? 'MemoriesIndexSkill',
+      name: opts.name ?? 'MemoriesIndexTool',
       description: opts.description ?? 'Re-indexes all memories files to update the embeddings index',
       parameterSchema: '{ input: string }',
       tags: opts.tags ?? ['memories', 'store', 'keep', 'save memory']
@@ -26,7 +26,7 @@ export class MemoriesIndexSkill extends BaseSkill {
     return /\b(index memory|reindex memory)\b/.test(s);
   }
 
-  protected async runSkill(input: any, _ctx?: SkillContext) {
+  protected async runTool(input: any, _ctx?: ToolContext) {
     // Extract string input if provided in object format
     const inputStr = typeof input === 'object' && input?.input ? input.input : input;
     
@@ -36,7 +36,7 @@ export class MemoriesIndexSkill extends BaseSkill {
         fs.mkdirSync(this.memoriesPath, { recursive: true });
       }
 
-      const config = loadConfig('memoriesSkills.json');
+      const config = loadConfig('memoriesTools.json');
       const modelType = config?.modelType || 'OllamaEmbeddingsModel';
       const modelConfig = config?.modelConfig || {};
 

@@ -3,9 +3,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { MemoriesIndexSkill } from '../../src/skills/MemoriesIndexSkill';
-import { MemoriesKeepSkill } from '../../src/skills/MemoriesKeepSkill';
-import { MemoriesRetrievalSkill } from '../../src/skills/MemoriesRetrievalSkill';
+import { MemoriesIndexTool } from '../../src/skills/MemoriesIndexTool';
+import { MemoriesKeepTool } from '../../src/skills/MemoriesKeepTool';
+import { MemoriesRetrievalTool } from '../../src/skills/MemoriesRetrievalTool';
 import { BaseEmbeddingsModel } from '../../src/models';
 import { FilesystemEmbeddingsIndex } from '../../src/utils/embeddings';
 
@@ -24,7 +24,7 @@ jest.mock('@openglove/base', () => ({
     warn: jest.fn(),
     verbose: jest.fn()
   })),
-  BaseSkill: class {
+  BaseTool: class {
     name: string;
     description: string;
     config: any;
@@ -36,11 +36,11 @@ jest.mock('@openglove/base', () => ({
     }
 
     async run(input: any, ctx?: any): Promise<any> {
-      return (this as any).runSkill(input, ctx);
+      return (this as any).runTool(input, ctx);
     }
 
-    protected async runSkill(_input: any, _ctx?: any): Promise<any> {
-      throw new Error('runSkill must be implemented by subclass');
+    protected async runTool(_input: any, _ctx?: any): Promise<any> {
+      throw new Error('runTool must be implemented by subclass');
     }
   }
 }));
@@ -52,7 +52,7 @@ const mockFilesystemEmbeddingsIndex = FilesystemEmbeddingsIndex as jest.MockedCl
   typeof FilesystemEmbeddingsIndex
 >;
 
-describe('Memory Skills', () => {
+describe('Memory Tools', () => {
   let tempDir: string;
 
   beforeEach(() => {
@@ -64,11 +64,11 @@ describe('Memory Skills', () => {
     jest.restoreAllMocks();
   });
 
-  describe('MemoriesIndexSkill', () => {
-    let skill: MemoriesIndexSkill;
+  describe('MemoriesIndexTool', () => {
+    let skill: MemoriesIndexTool;
 
     beforeEach(() => {
-      skill = new MemoriesIndexSkill();
+      skill = new MemoriesIndexTool();
     });
 
     describe('canHandle', () => {
@@ -197,11 +197,11 @@ describe('Memory Skills', () => {
     });
   });
 
-  describe('MemoriesKeepSkill', () => {
-    let skill: MemoriesKeepSkill;
+  describe('MemoriesKeepTool', () => {
+    let skill: MemoriesKeepTool;
 
     beforeEach(() => {
-      skill = new MemoriesKeepSkill();
+      skill = new MemoriesKeepTool();
       jest.useFakeTimers();
       jest.setSystemTime(new Date('2026-03-05T10:30:45'));
     });
@@ -376,11 +376,11 @@ describe('Memory Skills', () => {
     });
   });
 
-  describe('MemoriesRetrievalSkill', () => {
-    let skill: MemoriesRetrievalSkill;
+  describe('MemoriesRetrievalTool', () => {
+    let skill: MemoriesRetrievalTool;
 
     beforeEach(() => {
-      skill = new MemoriesRetrievalSkill();
+      skill = new MemoriesRetrievalTool();
     });
 
     describe('canHandle', () => {

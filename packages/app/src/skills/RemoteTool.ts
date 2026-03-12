@@ -1,13 +1,13 @@
 import * as net from 'net';
 import * as path from 'path';
-import { BaseSkill, classNameToSocketName, JSONRPCRequest, JSONRPCResponse, Logger, SkillContext } from '@openglove/base';
+import { BaseTool, classNameToSocketName, JSONRPCRequest, JSONRPCResponse, Logger, ToolContext } from '@openglove/base';
 
-const logger = new Logger('RemoteSkill');
+const logger = new Logger('RemoteTool');
 
 /**
- * RemoteSkill connects to a Unix domain socket and makes JSON-RPC calls
+ * RemoteTool connects to a Unix domain socket and makes JSON-RPC calls
  */
-export class RemoteSkill extends BaseSkill {
+export class RemoteTool extends BaseTool {
   private socketPath: string;
 
   constructor(skillName: string, socketDir: string = '/tmp') {
@@ -24,15 +24,15 @@ export class RemoteSkill extends BaseSkill {
     return debug;
   }
 
-  protected async runSkill(_input: any, _ctx?: SkillContext) {
-    return await this.call('runSkill', _input, _ctx);
+  protected async runTool(_input: any, _ctx?: ToolContext) {
+    return await this.call('runTool', _input, _ctx);
   }
 
   /**
    * Make a JSON-RPC call to the socket server with n parameters
    */
   async call(method: string, ...params: unknown[]): Promise<unknown> {
-    logger.log(`RemoteSkill calling method ${method} with params:`, params);
+    logger.log(`RemoteTool calling method ${method} with params:`, params);
     return new Promise((resolve, reject) => {
       const socket = net.createConnection(this.socketPath);
       let responseBuffer = '';

@@ -1,17 +1,17 @@
 import { Logger, SocketServer } from '@openglove/base';
-import { WebBrowserSkill } from './skills/WebBrowserSkill';
+import { WebBrowserTool } from './skills/WebBrowserTool';
 
 /**
- * Socket server for WebBrowserSkill
+ * Socket server for WebBrowserTool
  * Listens on /tmp/web_browser_skill.sock and handles JSON-RPC requests
  */
 
-const logger = new Logger('WebBrowserSkillServer');
+const logger = new Logger('WebBrowserToolServer');
 logger.subscribe(Logger.ConsoleSubscriber());
 
 async function main() {
-  const server = new SocketServer('WebBrowserSkill');
-  let skill = new WebBrowserSkill();
+  const server = new SocketServer('WebBrowserTool');
+  let skill = new WebBrowserTool();
 
   // Register the "run" method
   server.registerMethod('canHandle', async (params: any) => {
@@ -23,7 +23,7 @@ async function main() {
     return await skill.getInfo();
   });
 
-  server.registerMethod('runSkill', async (params: any) => {
+  server.registerMethod('runTool', async (params: any) => {
     let input: any;
     let ctx: any;
 
@@ -36,7 +36,7 @@ async function main() {
     }
 
     const result = await skill.run(input, ctx);
-    logger.log('runSkill result:', result);
+    logger.log('runTool result:', result);
 
     return result;
   });

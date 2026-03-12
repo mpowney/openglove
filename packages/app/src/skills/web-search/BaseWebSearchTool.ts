@@ -1,6 +1,6 @@
-import { BaseSkill, SkillContext, Logger } from '@openglove/base';
+import { BaseTool, ToolContext, Logger } from '@openglove/base';
 
-const logger = new Logger('BaseWebSearchSkill');
+const logger = new Logger('BaseWebSearchTool');
 
 export type SearchResultItem = {
   title?: string;
@@ -23,7 +23,7 @@ export interface BaseWebSearchOptions {
   resultCount?: number;
 }
 
-export abstract class BaseWebSearchSkill extends BaseSkill {
+export abstract class BaseWebSearchTool extends BaseTool {
   protected baseUrl: string;
   protected timeout: number;
   protected params: Record<string, string>;
@@ -39,7 +39,7 @@ export abstract class BaseWebSearchSkill extends BaseSkill {
     });
     const cfg = (this as any).config as Record<string, any> | undefined;
     const baseUrl = (opts as any).baseUrl ?? cfg?.baseUrl;
-    if (!baseUrl) throw new Error('BaseWebSearchSkill requires a baseUrl option or config entry');
+    if (!baseUrl) throw new Error('BaseWebSearchTool requires a baseUrl option or config entry');
     this.baseUrl = baseUrl;
     this.timeout = (opts as any).timeout ?? cfg?.timeout ?? 8000;
     this.params = (opts as any).params ?? cfg?.params ?? {};
@@ -98,7 +98,7 @@ export abstract class BaseWebSearchSkill extends BaseSkill {
 
   protected abstract buildSearchUrl(query: string): string;
 
-  protected async runSkill(input: any, _ctx?: SkillContext): Promise<SearchResponse> {
+  protected async runTool(input: any, _ctx?: ToolContext): Promise<SearchResponse> {
     // Extract string input if provided in object format
     const q = typeof input === 'object' && input?.input ? input.input : input;
     const url = this.buildSearchUrl(q);

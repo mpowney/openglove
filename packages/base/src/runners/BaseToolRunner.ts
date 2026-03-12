@@ -1,21 +1,21 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import type { BaseSkill } from '../skills/BaseSkill';
-import { SkillContext } from '../skills/BaseSkill';
+import type { BaseTool } from '../skills/BaseTool';
+import { ToolContext } from '../skills/BaseTool';
 import { Logger } from '../utils/Logger';
 import { loadConfig } from '../utils/Config';
 
-const logger = new Logger('BaseSkillRunner');
+const logger = new Logger('BaseToolRunner');
 
 /**
  * Abstract base class for skill runners.
- * Skill runners are initialized for each skill execution and can run logic before/after the skill.
+ * Tool runners are initialized for each skill execution and can run logic before/after the skill.
  */
-export abstract class BaseSkillRunner {
+export abstract class BaseToolRunner {
   /** Directory where configuration files are located */
   protected configDir: string = process.cwd();
 
-  static async require(name: string, config?: any): Promise<BaseSkillRunner> {
+  static async require(name: string, config?: any): Promise<BaseToolRunner> {
 
     const basePath = `${__dirname}`;
     try {
@@ -40,26 +40,26 @@ export abstract class BaseSkillRunner {
     } catch (e) {
       logger.warn(`Failed to load skill module for ${name}`, e);
     }
-    throw new Error(`Skill ${name} not found in path ${basePath} or is not a constructor`);
+    throw new Error(`Tool ${name} not found in path ${basePath} or is not a constructor`);
   }
 
   /**
    * Execute logic before the skill runs.
    * Used to prepare models, set up context, or perform pre-flight checks.
    */
-  abstract runBeforeSkill(skill: BaseSkill, input: any, ctx?: SkillContext): Promise<void>;
+  abstract runBeforeTool(skill: BaseTool, input: any, ctx?: ToolContext): Promise<void>;
 
   /**
    * Optional: Execute logic after the skill runs.
    */
-  async runAfterSkill(_skill: BaseSkill, _result: unknown, _input: any, _ctx?: SkillContext): Promise<void> {
+  async runAfterTool(_skill: BaseTool, _result: unknown, _input: any, _ctx?: ToolContext): Promise<void> {
     // No-op by default
   }
 
   /**
    * Load runners.json configuration
    */
-  protected loadSkillRunnerConfig(): any {
+  protected loadToolRunnerConfig(): any {
     return loadConfig('runners.json');
   }
 }

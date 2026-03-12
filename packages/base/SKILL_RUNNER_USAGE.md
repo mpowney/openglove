@@ -1,6 +1,6 @@
-# Skill Runner Dynamic Loading
+# Tool Runner Dynamic Loading
 
-BaseSkill now supports dynamically loading skill runners from configuration files.
+BaseTool now supports dynamically loading skill runners from configuration files.
 
 ## Configuration
 
@@ -9,7 +9,7 @@ Add a `runner` or `skillRunner` property to your skill configuration in `skills.
 ### Simple String Format
 ```json
 {
-  "MySkill": {
+  "MyTool": {
     "runner": "RinseAndRepeatRunner"
   }
 }
@@ -18,7 +18,7 @@ Add a `runner` or `skillRunner` property to your skill configuration in `skills.
 ### Object Format (with options)
 ```json
 {
-  "MySkill": {
+  "MyTool": {
     "runner": {
       "type": "RinseAndRepeatRunner",
       "opts": {
@@ -32,7 +32,7 @@ Add a `runner` or `skillRunner` property to your skill configuration in `skills.
 ### Custom Import Path
 ```json
 {
-  "MySkill": {
+  "MyTool": {
     "runner": {
       "type": "RinseAndRepeatRunner",
       "importPath": "../../app/src/runners",
@@ -51,7 +51,7 @@ Add a `runner` or `skillRunner` property to your skill configuration in `skills.
 Given this configuration in `skills.json`:
 ```json
 {
-  "TimeSkill": {
+  "TimeTool": {
     "runner": {
       "type": "RinseAndRepeatRunner",
       "opts": {
@@ -62,7 +62,7 @@ Given this configuration in `skills.json`:
 }
 ```
 
-When `TimeSkill` is instantiated, it will:
+When `TimeTool` is instantiated, it will:
 1. Detect the runner configuration
 2. Dynamically import from `../runners/RinseAndRepeatRunner`
 3. Instantiate the runner with the provided options

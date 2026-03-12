@@ -9,7 +9,7 @@ describe('DefaultPipeline integration', () => {
     process.cwd(),
     '__tests__',
     'fixtures',
-    '__missing-default-pipeline-config.integration.json'
+    '__this-file-should-not-exist.default-pipeline.integration.json'
   );
 
   beforeEach(() => {

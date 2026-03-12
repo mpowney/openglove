@@ -1,14 +1,14 @@
-import { BaseSkill, BaseSkillRunner, loadConfig, Logger, SkillContext } from '@openglove/base';
+import { BaseTool, BaseToolRunner, loadConfig, Logger, ToolContext } from '@openglove/base';
 import { BaseModel } from '../models/BaseModel';
 import { BaseGenerativeModel } from '../models/generative';
 
 const logger = new Logger('RinseAndRepeatRunner');
 
 /**
- * RinseAndRepeatRunner initializes a language model and uses it before executing WebBrowserSkill.
+ * RinseAndRepeatRunner initializes a language model and uses it before executing WebBrowserTool.
  * Configuration comes from skillRunner.json with overrides applied on top of models.json.
  */
-export class RinseAndRepeatRunner extends BaseSkillRunner {
+export class RinseAndRepeatRunner extends BaseToolRunner {
   private model: BaseGenerativeModel | null = null;
   private modelConfig: any = null;
 
@@ -17,7 +17,7 @@ export class RinseAndRepeatRunner extends BaseSkillRunner {
     this.configDir = process.cwd(); // Set config directory to current working directory to find skillRunner.json
   }
 
-  async runBeforeSkill(skill: BaseSkill, input: any, _ctx?: SkillContext): Promise<void> {
+  async runBeforeTool(skill: BaseTool, input: any, _ctx?: ToolContext): Promise<void> {
     try {
       // Get skill info (name and description)
       const skillInfo = await skill.getInfo();
@@ -26,7 +26,7 @@ export class RinseAndRepeatRunner extends BaseSkillRunner {
       const skillParamSchema = skillInfo.parameterSchema || '{}';
 
       // Load configuration
-      const skillRunnerConfig = this.loadSkillRunnerConfig();
+      const skillRunnerConfig = this.loadToolRunnerConfig();
       const modelsConfig = this.loadModelsConfig();
 
       const runBeforeModelConfig = skillRunnerConfig?.RinseAndRepeatRunner?.runBeforeModel;
